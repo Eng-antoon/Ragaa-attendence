@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Attendance Tracker</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-firestore.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAdRdy9EIlf9cqumCJDKmT-LBo-0buyxfE",
+            authDomain: "ragaa2.firebaseapp.com",
+            projectId: "ragaa2",
+            storageBucket: "ragaa2.appspot.com",
+            messagingSenderId: "1043709314283",
+            appId: "1:1043709314283:web:bf7e3fc81be7540277eaae",
+            measurementId: "G-VPN7L61FZT"
+        };
+        firebase.initializeApp(firebaseConfig);
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Attendance Tracker</h1>
+        <div class="controls">
+            <div class="manage-tools">
+                <button class="control-button" onclick="openForm('addRecordForm')">+ Add Record</button>
+                <button class="control-button" onclick="openForm('addPersonForm')">+ Add Person</button>
+                <button class="control-button" onclick="toggleView('calendar')">Monthly View</button>
+                <button class="control-button" onclick="toggleView('table')">Table View</button>
+            </div>
+            <div class="filters">
+                <label for="nameSearch">Search by Name: </label>
+                <input type="text" id="nameSearch" oninput="filterByName()">
+                <label for="filterName">Filter by Name: </label>
+                <select id="filterName" onchange="filterByDropdownName()"></select>
+                <label for="filterDate">Filter by Date: </label>
+                <input type="date" id="filterDate" onchange="filterByDate()">
+            </div>
+        </div>
+        <div id="calendarView" class="hidden">
+            <div class="calendar-header">
+                <button class="calendar-nav-button" onclick="changeMonth(-1)">&#10094;</button>
+                <span id="currentMonthYear" class="calendar-month"></span>
+                <button class="calendar-nav-button" onclick="changeMonth(1)">&#10095;</button>
+            </div>
+            <div class="calendar" id="calendar"></div>
+        </div>
+        <div id="tableView">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Date</th>
+                        <th>Attendance</th>
+                        <th>Description</th>
+                        <th>Edit</th>
+                    </tr>
+                </thead>
+                <tbody id="attendanceTable"></tbody>
+            </table>
+        </div>
+        <div id="addRecordForm" class="modal hidden" onclick="closeModal(event)">
+            <div class="modal-content" onclick="event.stopPropagation()">
+                <span class="close" onclick="closeForm('addRecordForm')">&times;</span>
+                <h3>Add Record</h3>
+                <label for="recordName">Name: </label>
+                <select id="recordName"></select>
+                <label for="recordDate">Date: </label>
+                <input type="date" id="recordDate">
+                <label for="recordAttendance">Attendance: </label>
+                <select id="recordAttendance" onchange="toggleDescription()">
+                    <option value="Attended">Attended</option>
+                    <option value="Absent">Absent</option>
+                    <option value="Excused">Excused</option>
+                </select>
+                <label for="recordDescription" id="descriptionLabel" class="hidden">Description: </label>
+                <input type="text" id="recordDescription" class="hidden">
+                <button onclick="addRecord()">Submit</button>
+            </div>
+        </div>
+        <div id="addPersonForm" class="modal hidden" onclick="closeModal(event)">
+            <div class="modal-content" onclick="event.stopPropagation()">
+                <span class="close" onclick="closeForm('addPersonForm')">&times;</span>
+                <h3>Add Person</h3>
+                <label for="personName">Name: </label>
+                <input type="text" id="personName">
+                <label for="personFirstAttendance">First Attendance Date: </label>
+                <input type="date" id="personFirstAttendance">
+                <button onclick="addPerson()">Submit</button>
+            </div>
+        </div>
+        <div id="editRecordForm" class="modal hidden" onclick="closeModal(event)">
+            <div class="modal-content" onclick="event.stopPropagation()">
+                <span class="close" onclick="closeForm('editRecordForm')">&times;</span>
+                <h3>Edit Record</h3>
+                <label for="editRecordName">Name: </label>
+                <select id="editRecordName"></select>
+                <label for="editRecordDate">Date: </label>
+                <input type="date" id="editRecordDate">
+                <label for="editRecordAttendance">Attendance: </label>
+                <select id="editRecordAttendance" onchange="toggleEditDescription()">
+                    <option value="Attended">Attended</option>
+                    <option value="Absent">Absent</option>
+                    <option value="Excused">Excused</option>
+                </select>
+                <label for="editRecordDescription">Description: </label>
+                <input type="text" id="editRecordDescription">
+                <button onclick="updateRecord()">Update</button>
+            </div>
+        </div>
+    </div>
+    <script src="scripts.js"></script>
+</body>
+</html>
