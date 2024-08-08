@@ -8,18 +8,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.1/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css">
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyAdRdy9EIlf9cqumCJDKmT-LBo-0buyxfE",
-            authDomain: "ragaa2.firebaseapp.com",
-            projectId: "ragaa2",
-            storageBucket: "ragaa2.appspot.com",
-            messagingSenderId: "1043709314283",
-            appId: "1:1043709314283:web:bf7e3fc81be7540277eaae",
-            measurementId: "G-VPN7L61FZT"
-        };
-        firebase.initializeApp(firebaseConfig);
-    </script>
 </head>
 <body>
     <div class="container">
@@ -56,11 +44,20 @@
                 </div>
             </div>
         </div>
+        <div class="calendar-header">
+            <button class="calendar-nav-button" onclick="changeMonth(-1)">&#10094;</button>
+            <span id="currentMonthYear" class="calendar-month"></span>
+            <button class="calendar-nav-button" onclick="changeMonth(1)">&#10095;</button>
+        </div>
         <div id="calendarView">
-            <div class="calendar-header">
-                <button class="calendar-nav-button" onclick="changeMonth(-1)">&#10094;</button>
-                <span id="currentMonthYear" class="calendar-month"></span>
-                <button class="calendar-nav-button" onclick="changeMonth(1)">&#10095;</button>
+            <div class="calendar-header-row">
+                <div class="calendar-day-header">Sun</div>
+                <div class="calendar-day-header">Mon</div>
+                <div class="calendar-day-header">Tue</div>
+                <div class="calendar-day-header">Wed</div>
+                <div class="calendar-day-header">Thu</div>
+                <div class="calendar-day-header">Fri</div>
+                <div class="calendar-day-header">Sat</div>
             </div>
             <div class="calendar" id="calendar"></div>
         </div>
@@ -165,6 +162,21 @@
             </div>
         </div>
     </div>
-    <script src="scripts.js"></script>
+    <script type="module">
+        import './firebaseConfig.js';
+        import { loadPersons, loadData } from './dataLoader.js';
+        import { changeMonth, generateCalendarView, setSwipeEvents } from './calendarView.js';
+        import { populateAttendanceTable } from './tableView.js';
+        import { openForm, closeForm, openEditRecordForm, addRecord, addPerson, updateRecord, toggleDescription, toggleEditDescription } from './formHandlers.js';
+        import { applyFilters } from './filters.js';
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            await loadPersons();
+            const data = await loadData();
+            populateAttendanceTable(data);
+            generateCalendarView(data);
+            setSwipeEvents(document.getElementById('calendar'));
+        });
+    </script>
 </body>
 </html>
