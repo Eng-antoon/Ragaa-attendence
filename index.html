@@ -32,12 +32,14 @@
                 <button class="control-button" onclick="toggleView('calendar')">Monthly View</button>
                 <button class="control-button" onclick="toggleView('table')">Table View</button>
                 <button class="control-button" onclick="downloadMonthlyData()">Download Monthly Data</button>
+                <button class="control-button" onclick="location.href='statistics.html'">Statistics</button>
+                <button class="control-button" onclick="openForm('viewPersonForm')">View/Edit Person</button>
             </div>
         </div>
         <div class="filters-container">
             <div class="search-bar">
-                <input type="text" id="nameSearch" placeholder="Search by Name" oninput="filterByName()">
-                <button onclick="filterByName()" class="search-button">&#128269;</button>
+                <input type="text" id="nameSearch" placeholder="Search by Name" oninput="applyFilters()">
+                <button onclick="applyFilters()" class="search-button">&#128269;</button>
             </div>
             <div class="filter-dropdown">
                 <button onclick="toggleFilterDropdown()" class="filter-button">Filter by</button>
@@ -103,6 +105,18 @@
                 <h3>Add Person</h3>
                 <label for="personName">Name: </label>
                 <input type="text" id="personName">
+                <label for="personMobile">Mobile Number: </label>
+                <input type="text" id="personMobile">
+                <label for="personAddress">Address: </label>
+                <input type="text" id="personAddress">
+                <label for="personLat">Latitude: </label>
+                <input type="text" id="personLat">
+                <label for="personLon">Longitude: </label>
+                <input type="text" id="personLon">
+                <label for="personActivities">Activities: </label>
+                <input type="text" id="personActivities">
+                <label for="personDescription">Description: </label>
+                <input type="text" id="personDescription">
                 <label for="personFirstAttendance">First Attendance Date: </label>
                 <input type="date" id="personFirstAttendance">
                 <button class="submit-button" onclick="addPerson()">Submit</button>
@@ -125,6 +139,29 @@
                 <label for="editRecordDescription">Description: </label>
                 <input type="text" id="editRecordDescription">
                 <button class="submit-button" onclick="updateRecord()">Update</button>
+            </div>
+        </div>
+        <div id="viewPersonForm" class="modal hidden" onclick="closeModal(event)">
+            <div class="modal-content" onclick="event.stopPropagation()">
+                <span class="close" onclick="closeForm('viewPersonForm')">&times;</span>
+                <h3>View/Edit Person</h3>
+                <label for="viewPersonSelect">Select Person: </label>
+                <select id="viewPersonSelect" onchange="loadPersonData()"></select>
+                <div id="personData" class="hidden">
+                    <label for="viewPersonMobile">Mobile Number: </label>
+                    <input type="text" id="viewPersonMobile">
+                    <label for="viewPersonAddress">Address: </label>
+                    <input type="text" id="viewPersonAddress">
+                    <label for="viewPersonLat">Latitude: </label>
+                    <input type="text" id="viewPersonLat">
+                    <label for="viewPersonLon">Longitude: </label>
+                    <input type="text" id="viewPersonLon">
+                    <label for="viewPersonActivities">Activities: </label>
+                    <input type="text" id="viewPersonActivities">
+                    <label for="viewPersonDescription">Description: </label>
+                    <input type="text" id="viewPersonDescription">
+                    <button class="submit-button" onclick="editPersonData()">Edit</button>
+                </div>
             </div>
         </div>
     </div>

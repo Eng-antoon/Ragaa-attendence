@@ -6,6 +6,8 @@
     --attended-color: #d4edda;
     --absent-color: #f8d7da;
     --excused-color: #fff3cd;
+    --hover-color: #e0f7fa;
+    --modal-background-color: rgba(0,0,0,0.4);
 }
 
 body {
@@ -21,10 +23,11 @@ body {
     margin: 0 auto;
     padding: 20px;
     background-color: #fff;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
     border-radius: 10px;
     position: relative;
     z-index: 1;
+    animation: fadeIn 1s;
 }
 
 h1 {
@@ -69,19 +72,20 @@ h1 {
     z-index: 2;
 }
 
-.control-button, .submit-button, .filter-button {
+.control-button, .submit-button, .filter-button, .download-button {
     background-color: var(--primary-color);
     color: white;
     border: none;
     padding: 10px 20px;
     border-radius: 5px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.3s ease, transform 0.3s ease;
     font-size: 16px;
 }
 
-.control-button:hover, .submit-button:hover, .filter-button:hover {
+.control-button:hover, .submit-button:hover, .filter-button:hover, .download-button:hover {
     background-color: #3a7bc8;
+    transform: scale(1.1);
 }
 
 .filters-container {
@@ -93,7 +97,8 @@ h1 {
 .search-bar {
     display: flex;
     flex: 1;
-    max-width: 300px;
+    max-width: 80%;
+    height: 100%;
 }
 
 .search-bar input {
@@ -110,6 +115,12 @@ h1 {
     padding: 10px;
     border-radius: 0 5px 5px 0;
     cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.search-button:hover {
+    background-color: #3a7bc8;
+    transform: scale(1.1);
 }
 
 .calendar {
@@ -118,27 +129,65 @@ h1 {
     gap: 10px;
 }
 
+.calendar-header-row {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+    margin-bottom: 10px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.calendar-day-header {
+    background-color: var(--background-color);
+    padding: 5px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+}
+
 .calendar div {
     background-color: white;
     border-radius: 5px;
     padding: 10px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    transition: transform 0.3s ease;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
     border: 1px solid #ccc;
     text-align: center;
     position: relative;
     min-height: 150px;
     overflow: hidden;
-    padding-bottom: 40px;
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
 }
 
 .calendar div:hover {
     transform: scale(1.05);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
 .calendar .attended { background-color: var(--attended-color); }
 .calendar .not-attended { background-color: var(--absent-color); }
 .calendar .excused { background-color: var(--excused-color); }
+
+.calendar .auto-generated {
+    background-color: #f0f0f0;
+    font-size: 12px;
+    color: #888;
+}
+
+.calendar .day-number, .calendar .day-month {
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.calendar .names {
+    font-size: 14px;
+}
+
+.calendar .auto-generated .names {
+    font-size: 12px;
+    color: #888;
+}
 
 .calendar-header {
     display: flex;
@@ -155,6 +204,12 @@ h1 {
     margin: 0 10px;
     border-radius: 5px;
     cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.calendar-nav-button:hover {
+    background-color: #3a7bc8;
+    transform: scale(1.1);
 }
 
 .calendar-month {
@@ -172,7 +227,7 @@ h1 {
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0,0,0,0.4);
+    background-color: var(--modal-background-color);
     visibility: hidden;
     opacity: 0;
     transition: visibility 0s, opacity 0.5s;
@@ -183,6 +238,7 @@ h1 {
     display: flex;
     visibility: visible;
     opacity: 1;
+    animation: fadeIn 0.5s;
 }
 
 .modal-content {
@@ -211,11 +267,11 @@ h1 {
 }
 
 input[type="text"], input[type="date"], select {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 10px;
+    width: 85%;
+    padding: 14px;
     border: 1px solid #ddd;
     border-radius: 5px;
+    margin: 10px;
 }
 
 .hidden {
@@ -255,6 +311,12 @@ th {
     background-color: var(--excused-color);
 }
 
+.auto-generated {
+    background-color: #e0e0e0;
+    font-size: 12px;
+    color: #888;
+}
+
 @media (max-width: 768px) {
     .calendar {
         grid-template-columns: repeat(1, 1fr);
@@ -275,7 +337,7 @@ th {
         display: block;
     }
 
-    .control-button, .submit-button, .filter-button {
+    .control-button, .submit-button, .filter-button, .download-button {
         width: 100%;
         margin-bottom: 10px;
     }
@@ -298,12 +360,18 @@ th {
     }
 }
 
+/* Animation keyframes */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
 /* Choices.js Styling Fix */
 .choices[data-type*=select-multiple] .choices__inner,
 .choices[data-type*=select-one] .choices__inner {
     display: inline-block;
     vertical-align: top;
-    width: 40%;
+    width: 90%;
     min-height: 44px;
     border: 1px solid #ccd0d5;
     background-color: #fff;
@@ -312,8 +380,33 @@ th {
     cursor: pointer;
     box-sizing: border-box;
 }
+.choices__input {
+    display: inline-block;
+    vertical-align: baseline;
+    background-color: #f9f9f9;
+    font-size: 14px;
+    margin-bottom: 5px;
+    height: 4rem;
+    border: 0;
+    border-radius: 0;
+    max-width: 100%;
+    width: 100%;
+    padding: 4px 0 4px 2px;
+}
 
 .choices__inner {
     position: relative;
     z-index: 1;
+}
+
+#nameSearch {
+    margin: 0px;
+}
+
+.chart-container {
+    position: relative;
+    margin: auto;
+    height: 60vh;
+    width: 80vw;
+    margin-top: 20px;
 }

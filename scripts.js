@@ -3,8 +3,10 @@ let attendanceData = [];
 let currentMonth = new Date().getMonth();
 let currentYear = new Date().getFullYear();
 let editRecordId = null;
+let allPersons = [];
 
 document.addEventListener('DOMContentLoaded', function() {
+    loadPersons();
     loadData();
     setSwipeEvents();
     initializeChoices();
@@ -19,6 +21,40 @@ function initializeChoices() {
         shouldSort: false,
         itemSelectText: ''
     });
+}
+
+async function loadPersons() {
+    try {
+        const querySnapshot = await db.collection("persons").get();
+        allPersons = [];
+        const options = [];
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            data.id = doc.id;
+            allPersons.push(data.name.trim());
+            options.push({ value: data.name.trim(), label: data.name.trim() });
+        });
+        console.log("Loaded Persons: ", allPersons);
+
+        // Populate viewPersonSelect dropdown directly
+        const viewPersonSelect = document.getElementById('viewPersonSelect');
+        viewPersonSelect.innerHTML = options.map(option => `<option value="${option.value}">${option.label}</option>`).join('');
+
+        // Update filterNameChoices
+        const filterNameChoices = window.filterNameChoices;
+        filterNameChoices.clearStore();
+        filterNameChoices.setChoices(options, 'value', 'label', true);
+
+        // Populate other dropdowns
+        const recordNameSelect = document.getElementById('recordName');
+        recordNameSelect.innerHTML = options.map(option => `<option value="${option.value}">${option.label}</option>`).join('');
+
+        const editRecordNameSelect = document.getElementById('editRecordName');
+        editRecordNameSelect.innerHTML = options.map(option => `<option value="${option.value}">${option.label}</option>`).join('');
+
+    } catch (error) {
+        console.error("Error loading persons: ", error);
+    }
 }
 
 async function loadData() {
@@ -57,7 +93,21 @@ function populateAttendanceTable(data) {
             </tr>
         `;
     }).join('');
-    document.getElementById('attendanceTable').innerHTML = tableContent;
+
+    const allNamesSet = new Set(allPersons);
+    const dataNamesSet = new Set(data.map(entry => entry.name.trim()));
+    const missingNames = Array.from(allNamesSet).filter(name => !dataNamesSet.has(name));
+    const missingRows = missingNames.map(name => `
+        <tr class="not-attended auto-generated">
+            <td>${name}</td>
+            <td>N/A</td>
+            <td>Absent</td>
+            <td>Auto-generated</td>
+            <td></td>
+        </tr>
+    `).join('');
+
+    document.getElementById('attendanceTable').innerHTML = tableContent + missingRows;
 }
 
 function populateNameDropdowns(nameSet) {
@@ -79,7 +129,7 @@ function filterByName() {
     const nameFilter = document.getElementById('nameSearch').value.toLowerCase().trim();
     const filteredData = attendanceData.filter(entry => entry.name.toLowerCase().includes(nameFilter));
     console.log("Filter by Name: ", nameFilter, "Filtered Data: ", filteredData);
-    updateViews(filteredData);
+    return filteredData;
 }
 
 function filterByDropdownName() {
@@ -87,20 +137,34 @@ function filterByDropdownName() {
     console.log("Selected Names: ", selectedNames);
     const filteredData = selectedNames.length ? attendanceData.filter(entry => selectedNames.includes(entry.name.trim())) : attendanceData;
     console.log("Filtered Data: ", filteredData);
-    updateViews(filteredData);
+    return filteredData;
 }
 
 function filterByDate() {
     const selectedDate = document.getElementById('filterDate').value;
     const filteredData = selectedDate ? attendanceData.filter(entry => entry.date === selectedDate) : attendanceData;
     console.log("Filter by Date: ", selectedDate, "Filtered Data: ", filteredData);
-    updateViews(filteredData);
+    return filteredData;
 }
 
 function updateViews(filteredData) {
     console.log("Updating Views with Data: ", filteredData);
     populateAttendanceTable(filteredData);
     generateCalendarView(filteredData);
+}
+
+function applyFilters() {
+    const filteredByName = filterByName();
+    const filteredByDropdownName = filterByDropdownName();
+    const filteredByDate = filterByDate();
+    
+    // Combine all filters
+    const finalFilteredData = filteredByName.filter(entry => 
+        filteredByDropdownName.includes(entry) && filteredByDate.includes(entry)
+    );
+    
+    console.log("Combined Filtered Data: ", finalFilteredData);
+    updateViews(finalFilteredData);
 }
 
 function updateAttendance(id, attendance) {
@@ -137,6 +201,18 @@ function generateCalendarView(data) {
     const firstDay = new Date(currentYear, currentMonth, 1).getDay();
     const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
 
+    // Add day headers
+    const dayHeaders = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const headerRow = document.createElement('div');
+    headerRow.classList.add('calendar-header-row');
+    dayHeaders.forEach(day => {
+        const dayHeader = document.createElement('div');
+        dayHeader.classList.add('calendar-day-header');
+        dayHeader.textContent = day.charAt(0);  // Display the first letter of the day
+        headerRow.appendChild(dayHeader);
+    });
+    calendarDiv.appendChild(headerRow);
+
     for (let i = 0; i < firstDay; i++) {
         const emptyDiv = document.createElement('div');
         emptyDiv.classList.add('empty');
@@ -146,21 +222,36 @@ function generateCalendarView(data) {
     for (let day = 1; day <= daysInMonth; day++) {
         const dateStr = new Date(currentYear, currentMonth, day).toISOString().split('T')[0];
         const dayData = data.filter(entry => entry.date === dateStr);
-        const attendanceCount = dayData.length;
+        const attendedCount = dayData.filter(entry => entry.attendance === 'Attended').length;
 
         const dayDiv = document.createElement('div');
         dayDiv.innerHTML = `<span class="day-number">${day}</span> <span class="day-month">${monthYearLabel.textContent.split(' ')[0]}</span><br>`;
-        if (attendanceCount > 0) {
-            dayDiv.innerHTML += `Attended: ${attendanceCount}<br><div class="names">${dayData.map(entry => entry.name).join('<br>')}</div>`;
+
+        if (attendedCount > 0) {
+            const allNamesSet = new Set(allPersons);
+            const dayNamesSet = new Set(dayData.map(entry => entry.name.trim()));
+            const missingNames = Array.from(allNamesSet).filter(name => !dayNamesSet.has(name));
+
+            missingNames.forEach(name => {
+                dayData.push({
+                    name: name,
+                    date: dateStr,
+                    attendance: 'Absent',
+                    description: 'Auto-generated'
+                });
+            });
+
+            dayDiv.innerHTML += `Attended: ${attendedCount}<br><div class="names">${dayData.map(entry => `<span class="${entry.description === 'Auto-generated' ? 'auto-generated' : ''}">${entry.name}</span>`).join('<br>')}</div>`;
             dayDiv.classList.add('attended');
-            dayDiv.innerHTML += `<button class="download-button" onclick="downloadExcel('${dateStr}')">Download</button>`;
         } else {
-            dayDiv.innerHTML += `Attended: 0`;
+            dayDiv.innerHTML += `Attended: 0<br><div class="names">${dayData.map(entry => `<span class="${entry.description === 'Auto-generated' ? 'auto-generated' : ''}">${entry.name}</span>`).join('<br>')}</div>`;
             dayDiv.classList.add('not-attended');
         }
+
         calendarDiv.appendChild(dayDiv);
     }
 }
+
 
 function downloadExcel(date) {
     const dayData = attendanceData.filter(entry => entry.date === date);
@@ -174,11 +265,13 @@ function downloadExcel(date) {
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Attendance');
 
+    // Autofit columns
     const maxLengths = worksheetData.reduce((max, row) => row.map((cell, i) => Math.max(max[i] || 0, cell.toString().length)), []);
     worksheet['!cols'] = maxLengths.map(len => ({ wch: len + 2 }));
 
+    // Add table borders and styling
     Object.keys(worksheet).forEach(cell => {
-        if (cell[0] === '!') return;
+        if (cell[0] === '!') return; // Skip special keys
         worksheet[cell].s = {
             border: {
                 top: { style: "thin", color: { auto: 1 } },
@@ -189,10 +282,11 @@ function downloadExcel(date) {
         };
     });
 
+    // Style headers
     ['A1', 'B1', 'C1', 'D1'].forEach(cell => {
         worksheet[cell].s = {
             font: { bold: true, color: { rgb: "FFFFFF" } },
-            fill: { fgColor: { rgb: "000000" } },
+            fill: { fgColor: { rgb: "007bff" } },
             border: {
                 top: { style: "thin", color: { auto: 1 } },
                 right: { style: "thin", color: { auto: 1 } },
@@ -200,6 +294,25 @@ function downloadExcel(date) {
                 left: { style: "thin", color: { auto: 1 } }
             }
         };
+    });
+
+    // Apply alternating row colors
+    worksheetData.forEach((row, rowIndex) => {
+        if (rowIndex > 0) { // Skip header row
+            const color = rowIndex % 2 === 0 ? "f0f0f0" : "ffffff";
+            row.forEach((_, colIndex) => {
+                const cellAddress = XLSX.utils.encode_cell({ r: rowIndex, c: colIndex });
+                worksheet[cellAddress].s = {
+                    fill: { fgColor: { rgb: color } },
+                    border: {
+                        top: { style: "thin", color: { auto: 1 } },
+                        right: { style: "thin", color: { auto: 1 } },
+                        bottom: { style: "thin", color: { auto: 1 } },
+                        left: { style: "thin", color: { auto: 1 } }
+                    }
+                };
+            });
+        }
     });
 
     XLSX.writeFile(workbook, `Attendance_${date}.xlsx`);
@@ -220,7 +333,7 @@ function downloadMonthlyData() {
         for (let day = 1; day <= daysInMonth; day++) {
             const dateStr = new Date(currentYear, currentMonth, day).toISOString().split('T')[0];
             const entry = monthData.find(e => e.name === name && e.date === dateStr);
-            row.push(entry ? entry.attendance : '');
+            row.push(entry ? entry.attendance : 'Absent');
         }
         worksheetData.push(row);
     });
@@ -229,9 +342,11 @@ function downloadMonthlyData() {
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Monthly Attendance');
 
+    // Autofit columns
     const maxLengths = worksheetData.reduce((max, row) => row.map((cell, i) => Math.max(max[i] || 0, cell.toString().length)), []);
     worksheet['!cols'] = maxLengths.map(len => ({ wch: len + 2 }));
 
+    // Add table borders and styling
     Object.keys(worksheet).forEach(cell => {
         if (cell[0] === '!') return;
         worksheet[cell].s = {
@@ -244,13 +359,14 @@ function downloadMonthlyData() {
         };
     });
 
+    // Style headers
     const headerRange = XLSX.utils.decode_range(worksheet['!ref']);
     for (let C = headerRange.s.c; C <= headerRange.e.c; ++C) {
         const address = XLSX.utils.encode_col(C) + "1";
         if (!worksheet[address]) continue;
         worksheet[address].s = {
             font: { bold: true, color: { rgb: "FFFFFF" } },
-            fill: { fgColor: { rgb: "000000" } },
+            fill: { fgColor: { rgb: "007bff" } },
             border: {
                 top: { style: "thin", color: { auto: 1 } },
                 right: { style: "thin", color: { auto: 1 } },
@@ -260,19 +376,14 @@ function downloadMonthlyData() {
         };
     }
 
-    const statusColors = {
-        Attended: { fgColor: { rgb: "D4EDDA" } },
-        Absent: { fgColor: { rgb: "F8D7DA" } },
-        Excused: { fgColor: { rgb: "FFF3CD" } }
-    };
-
-    for (let R = 1; R <= headerRange.e.r; ++R) {
-        for (let C = 1; C <= headerRange.e.c; ++C) {
-            const address = XLSX.utils.encode_cell({ r: R, c: C });
-            const cell = worksheet[address];
-            if (cell && cell.v && statusColors[cell.v]) {
-                cell.s = {
-                    fill: statusColors[cell.v],
+    // Apply alternating row colors
+    worksheetData.forEach((row, rowIndex) => {
+        if (rowIndex > 0) {
+            const color = rowIndex % 2 === 0 ? "f0f0f0" : "ffffff";
+            row.forEach((_, colIndex) => {
+                const cellAddress = XLSX.utils.encode_cell({ r: rowIndex, c: colIndex });
+                worksheet[cellAddress].s = {
+                    fill: { fgColor: { rgb: color } },
                     border: {
                         top: { style: "thin", color: { auto: 1 } },
                         right: { style: "thin", color: { auto: 1 } },
@@ -280,9 +391,9 @@ function downloadMonthlyData() {
                         left: { style: "thin", color: { auto: 1 } }
                     }
                 };
-            }
+            });
         }
-    }
+    });
 
     XLSX.writeFile(workbook, `Monthly_Attendance_${new Date(currentYear, currentMonth).toLocaleString('default', { month: 'long', year: 'numeric' })}.xlsx`);
 }
@@ -313,13 +424,14 @@ function closeModal(event) {
 
 function addRecord() {
     const name = document.getElementById('recordName').value;
-    const date = document.getElementById('recordDate').value;
+    const date = new Date(document.getElementById('recordDate').value);
+    date.setHours(0, 0, 0, 0); // Ensure time is set to the start of the day
     const attendance = document.getElementById('recordAttendance').value;
     const description = document.getElementById('recordDescription').value;
 
     const newRecord = {
         name,
-        date: new Date(date),
+        date,
         attendance,
         description: attendance !== 'Attended' ? description : ''
     };
@@ -349,17 +461,31 @@ function appendRecordToTable(entry) {
 
 function addPerson() {
     const name = document.getElementById('personName').value;
-    const firstAttendance = document.getElementById('personFirstAttendance').value;
+    const firstAttendance = new Date(document.getElementById('personFirstAttendance').value);
+    firstAttendance.setHours(0, 0, 0, 0); // Ensure time is set to the start of the day
+
+    const mobile = document.getElementById('personMobile').value;
+    const address = document.getElementById('personAddress').value;
+    const lat = document.getElementById('personLat').value;
+    const lon = document.getElementById('personLon').value;
+    const activities = document.getElementById('personActivities').value;
+    const description = document.getElementById('personDescription').value;
 
     const newPerson = {
         name,
-        firstAttendance: new Date(firstAttendance)
+        firstAttendance,
+        mobile,
+        address,
+        lat,
+        lon,
+        activities,
+        description
     };
 
     db.collection("persons").add(newPerson).then(() => {
         const newRecord = {
             name,
-            date: new Date(firstAttendance),
+            date: firstAttendance,
             attendance: 'Attended',
             description: ''
         };
@@ -377,13 +503,14 @@ function addPerson() {
 
 function updateRecord() {
     const name = document.getElementById('editRecordName').value;
-    const date = document.getElementById('editRecordDate').value;
+    const date = new Date(document.getElementById('editRecordDate').value);
+    date.setHours(0, 0, 0, 0); // Ensure time is set to the start of the day
     const attendance = document.getElementById('editRecordAttendance').value;
     const description = document.getElementById('editRecordDescription').value;
 
     const updatedRecord = {
         name,
-        date: new Date(date),
+        date,
         attendance,
         description
     };
@@ -425,16 +552,8 @@ function toggleHamburgerMenu() {
 
 function toggleFilterDropdown() {
     const filterDropdown = document.getElementById('filterDropdownContent');
-    filterDropdown.classList.toggle('show');
     filterDropdown.classList.toggle('hidden');
-}
-
-function applyFilters() {
-    const filteredByName = filterByDropdownName();
-    const filteredByDate = filterByDate();
-    const filteredData = filteredByName.filter(entry => filteredByDate.includes(entry));
-    console.log("Combined Filtered Data: ", filteredData);
-    updateViews(filteredData);
+    filterDropdown.classList.toggle('show');
 }
 
 function setSwipeEvents() {
@@ -455,4 +574,47 @@ function setSwipeEvents() {
         if (touchendX < touchstartX) changeMonth(1);
         if (touchendX > touchstartX) changeMonth(-1);
     }
+}
+
+function loadPersonData() {
+    const selectedPerson = document.getElementById('viewPersonSelect').value;
+    db.collection("persons").where("name", "==", selectedPerson).get().then((querySnapshot) => {
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            document.getElementById('viewPersonMobile').value = data.mobile || '';
+            document.getElementById('viewPersonAddress').value = data.address || '';
+            document.getElementById('viewPersonLat').value = data.lat || '';
+            document.getElementById('viewPersonLon').value = data.lon || '';
+            document.getElementById('viewPersonActivities').value = data.activities || '';
+            document.getElementById('viewPersonDescription').value = data.description || '';
+            document.getElementById('personData').classList.remove('hidden');
+        });
+    });
+}
+
+function editPersonData() {
+    const selectedPerson = document.getElementById('viewPersonSelect').value;
+    const mobile = document.getElementById('viewPersonMobile').value;
+    const address = document.getElementById('viewPersonAddress').value;
+    const lat = document.getElementById('viewPersonLat').value;
+    const lon = document.getElementById('viewPersonLon').value;
+    const activities = document.getElementById('viewPersonActivities').value;
+    const description = document.getElementById('viewPersonDescription').value;
+
+    db.collection("persons").where("name", "==", selectedPerson).get().then((querySnapshot) => {
+        querySnapshot.forEach((doc) => {
+            db.collection("persons").doc(doc.id).update({
+                mobile,
+                address,
+                lat,
+                lon,
+                activities,
+                description
+            }).then(() => {
+                alert("Person data updated successfully!");
+            }).catch((error) => {
+                console.error("Error updating person data: ", error);
+            });
+        });
+    });
 }
