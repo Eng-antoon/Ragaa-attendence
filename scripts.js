@@ -7,22 +7,23 @@ let editRecordId = null;
 document.addEventListener('DOMContentLoaded', function() {
     loadData();
     setSwipeEvents();
+    initializeChoices();
+});
 
-    // Initialize Choices.js for the multi-select dropdown
+function initializeChoices() {
     const filterNameSelect = document.getElementById('filterName');
-    const filterNameChoices = new Choices(filterNameSelect, {
+    window.filterNameChoices = new Choices(filterNameSelect, {
         removeItemButton: true,
         searchResultLimit: 5,
         position: 'bottom',
         shouldSort: false,
         itemSelectText: ''
     });
+}
 
-    window.filterNameChoices = filterNameChoices; // Expose filterNameChoices for debugging
-});
-
-function loadData() {
-    db.collection("attendance").get().then((querySnapshot) => {
+async function loadData() {
+    try {
+        const querySnapshot = await db.collection("attendance").get();
         attendanceData = [];
         let nameSet = new Set();
         querySnapshot.forEach((doc) => {
@@ -30,64 +31,74 @@ function loadData() {
             data.id = doc.id;
             data.date = new Date(data.date.seconds * 1000).toISOString().split('T')[0];
             attendanceData.push(data);
-            nameSet.add(data.name);
+            nameSet.add(data.name.trim());
         });
-        console.log("Loaded Data: ", attendanceData); // Debug log
+        console.log("Loaded Data: ", attendanceData);
         populateAttendanceTable(attendanceData);
-        populateNameDropdown(nameSet);
+        populateNameDropdowns(nameSet);
         generateCalendarView(attendanceData);
-    }).catch((error) => {
-        console.error("Error loading data: ", error); // Error handling
-    });
+    } catch (error) {
+        console.error("Error loading data: ", error);
+    }
 }
 
 function populateAttendanceTable(data) {
-    let tableContent = '';
-    data.forEach((entry) => {
+    const tableContent = data.map((entry) => {
         const attendanceClass = entry.attendance.toLowerCase();
-        tableContent += `<tr class="${attendanceClass}">
-            <td>${entry.name}</td>
-            <td>${entry.date}</td>
-            <td>${entry.attendance}</td>
-            <td>${entry.description || ''}</td>
-            <td>
-                <button onclick="openEditRecordForm('${entry.id}')">Edit</button>
-            </td>
-        </tr>`;
-    });
+        return `
+            <tr class="${attendanceClass}">
+                <td>${entry.name}</td>
+                <td>${entry.date}</td>
+                <td>${entry.attendance}</td>
+                <td>${entry.description || ''}</td>
+                <td>
+                    <button onclick="openEditRecordForm('${entry.id}')">Edit</button>
+                </td>
+            </tr>
+        `;
+    }).join('');
     document.getElementById('attendanceTable').innerHTML = tableContent;
 }
 
-function populateNameDropdown(nameSet) {
-    let options = [];
-    nameSet.forEach((name) => {
-        options.push({ value: name, label: name });
-    });
-    console.log("Name Options: ", options); // Debug log
+function populateNameDropdowns(nameSet) {
+    const options = Array.from(nameSet).map(name => ({ value: name, label: name }));
+    console.log("Name Options: ", options);
+
     const filterNameChoices = window.filterNameChoices;
-    filterNameChoices.clearStore(); // Clear any previous choices
-    filterNameChoices.setChoices(options, 'value', 'label', true); // Set new choices
+    filterNameChoices.clearStore();
+    filterNameChoices.setChoices(options, 'value', 'label', true);
+
+    const recordNameSelect = document.getElementById('recordName');
+    recordNameSelect.innerHTML = options.map(option => `<option value="${option.value}">${option.label}</option>`).join('');
+
+    const editRecordNameSelect = document.getElementById('editRecordName');
+    editRecordNameSelect.innerHTML = options.map(option => `<option value="${option.value}">${option.label}</option>`).join('');
 }
 
 function filterByName() {
-    const nameFilter = document.getElementById('nameSearch').value.toLowerCase();
+    const nameFilter = document.getElementById('nameSearch').value.toLowerCase().trim();
     const filteredData = attendanceData.filter(entry => entry.name.toLowerCase().includes(nameFilter));
-    populateAttendanceTable(filteredData);
-    generateCalendarView(filteredData);
+    console.log("Filter by Name: ", nameFilter, "Filtered Data: ", filteredData);
+    updateViews(filteredData);
 }
 
 function filterByDropdownName() {
-    const selectedNames = Array.from(document.getElementById('filterName').selectedOptions).map(option => option.value);
-    console.log("Selected Names: ", selectedNames); // Debug log
-    const filteredData = selectedNames.length ? attendanceData.filter(entry => selectedNames.includes(entry.name)) : attendanceData;
-    console.log("Filtered Data: ", filteredData); // Debug log
-    populateAttendanceTable(filteredData);
-    generateCalendarView(filteredData);
+    const selectedNames = Array.from(document.getElementById('filterName').selectedOptions).map(option => option.value.trim());
+    console.log("Selected Names: ", selectedNames);
+    const filteredData = selectedNames.length ? attendanceData.filter(entry => selectedNames.includes(entry.name.trim())) : attendanceData;
+    console.log("Filtered Data: ", filteredData);
+    updateViews(filteredData);
 }
 
 function filterByDate() {
     const selectedDate = document.getElementById('filterDate').value;
     const filteredData = selectedDate ? attendanceData.filter(entry => entry.date === selectedDate) : attendanceData;
+    console.log("Filter by Date: ", selectedDate, "Filtered Data: ", filteredData);
+    updateViews(filteredData);
+}
+
+function updateViews(filteredData) {
+    console.log("Updating Views with Data: ", filteredData);
     populateAttendanceTable(filteredData);
     generateCalendarView(filteredData);
 }
@@ -153,7 +164,7 @@ function generateCalendarView(data) {
 
 function downloadExcel(date) {
     const dayData = attendanceData.filter(entry => entry.date === date);
-    const worksheetData = [['الاسم', 'التاريخ', 'الحالة', 'الوصف']];
+    const worksheetData = [['Name', 'Date', 'Attendance', 'Description']];
 
     dayData.forEach(entry => {
         worksheetData.push([entry.name, entry.date, entry.attendance, entry.description || '']);
@@ -162,6 +173,34 @@ function downloadExcel(date) {
     const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Attendance');
+
+    const maxLengths = worksheetData.reduce((max, row) => row.map((cell, i) => Math.max(max[i] || 0, cell.toString().length)), []);
+    worksheet['!cols'] = maxLengths.map(len => ({ wch: len + 2 }));
+
+    Object.keys(worksheet).forEach(cell => {
+        if (cell[0] === '!') return;
+        worksheet[cell].s = {
+            border: {
+                top: { style: "thin", color: { auto: 1 } },
+                right: { style: "thin", color: { auto: 1 } },
+                bottom: { style: "thin", color: { auto: 1 } },
+                left: { style: "thin", color: { auto: 1 } }
+            }
+        };
+    });
+
+    ['A1', 'B1', 'C1', 'D1'].forEach(cell => {
+        worksheet[cell].s = {
+            font: { bold: true, color: { rgb: "FFFFFF" } },
+            fill: { fgColor: { rgb: "000000" } },
+            border: {
+                top: { style: "thin", color: { auto: 1 } },
+                right: { style: "thin", color: { auto: 1 } },
+                bottom: { style: "thin", color: { auto: 1 } },
+                left: { style: "thin", color: { auto: 1 } }
+            }
+        };
+    });
 
     XLSX.writeFile(workbook, `Attendance_${date}.xlsx`);
 }
@@ -190,7 +229,62 @@ function downloadMonthlyData() {
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Monthly Attendance');
 
-    XLSX.writeFile(workbook, `Attendance_${new Date(currentYear, currentMonth).toLocaleString('default', { month: 'long', year: 'numeric' })}.xlsx`);
+    const maxLengths = worksheetData.reduce((max, row) => row.map((cell, i) => Math.max(max[i] || 0, cell.toString().length)), []);
+    worksheet['!cols'] = maxLengths.map(len => ({ wch: len + 2 }));
+
+    Object.keys(worksheet).forEach(cell => {
+        if (cell[0] === '!') return;
+        worksheet[cell].s = {
+            border: {
+                top: { style: "thin", color: { auto: 1 } },
+                right: { style: "thin", color: { auto: 1 } },
+                bottom: { style: "thin", color: { auto: 1 } },
+                left: { style: "thin", color: { auto: 1 } }
+            }
+        };
+    });
+
+    const headerRange = XLSX.utils.decode_range(worksheet['!ref']);
+    for (let C = headerRange.s.c; C <= headerRange.e.c; ++C) {
+        const address = XLSX.utils.encode_col(C) + "1";
+        if (!worksheet[address]) continue;
+        worksheet[address].s = {
+            font: { bold: true, color: { rgb: "FFFFFF" } },
+            fill: { fgColor: { rgb: "000000" } },
+            border: {
+                top: { style: "thin", color: { auto: 1 } },
+                right: { style: "thin", color: { auto: 1 } },
+                bottom: { style: "thin", color: { auto: 1 } },
+                left: { style: "thin", color: { auto: 1 } }
+            }
+        };
+    }
+
+    const statusColors = {
+        Attended: { fgColor: { rgb: "D4EDDA" } },
+        Absent: { fgColor: { rgb: "F8D7DA" } },
+        Excused: { fgColor: { rgb: "FFF3CD" } }
+    };
+
+    for (let R = 1; R <= headerRange.e.r; ++R) {
+        for (let C = 1; C <= headerRange.e.c; ++C) {
+            const address = XLSX.utils.encode_cell({ r: R, c: C });
+            const cell = worksheet[address];
+            if (cell && cell.v && statusColors[cell.v]) {
+                cell.s = {
+                    fill: statusColors[cell.v],
+                    border: {
+                        top: { style: "thin", color: { auto: 1 } },
+                        right: { style: "thin", color: { auto: 1 } },
+                        bottom: { style: "thin", color: { auto: 1 } },
+                        left: { style: "thin", color: { auto: 1 } }
+                    }
+                };
+            }
+        }
+    }
+
+    XLSX.writeFile(workbook, `Monthly_Attendance_${new Date(currentYear, currentMonth).toLocaleString('default', { month: 'long', year: 'numeric' })}.xlsx`);
 }
 
 function openForm(formId) {
@@ -275,7 +369,7 @@ function addPerson() {
             appendRecordToTable(newRecord);
             const nameSet = new Set(Array.from(document.getElementById('filterName').options).map(option => option.value));
             nameSet.add(newPerson.name);
-            populateNameDropdown(nameSet);
+            populateNameDropdowns(nameSet);
             closeForm('addPersonForm');
         });
     });
@@ -336,9 +430,11 @@ function toggleFilterDropdown() {
 }
 
 function applyFilters() {
-    filterByDropdownName();
-    filterByDate();
-    toggleFilterDropdown();
+    const filteredByName = filterByDropdownName();
+    const filteredByDate = filterByDate();
+    const filteredData = filteredByName.filter(entry => filteredByDate.includes(entry));
+    console.log("Combined Filtered Data: ", filteredData);
+    updateViews(filteredData);
 }
 
 function setSwipeEvents() {
