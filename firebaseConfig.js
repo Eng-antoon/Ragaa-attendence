@@ -1,13 +1,13 @@
 // firebaseConfig.js
 const firebaseConfig = {
-    apiKey: "AIzaSyAdRdy9EIlf9cqumCJDKmT-LBo-0buyxfE",
-    authDomain: "ragaa2.firebaseapp.com",
-    projectId: "ragaa2",
-    storageBucket: "ragaa2.appspot.com",
-    messagingSenderId: "1043709314283",
-    appId: "1:1043709314283:web:bf7e3fc81be7540277eaae",
-    measurementId: "G-VPN7L61FZT"
-};
+    apiKey: "AIzaSyBFjqOyfk0zpQZW4SVgtA232p9tFzeMNJc",
+    authDomain: "ragaanewproject.firebaseapp.com",
+    projectId: "ragaanewproject",
+    storageBucket: "ragaanewproject.appspot.com",
+    messagingSenderId: "643493605383",
+    appId: "1:643493605383:web:a90e4c460dfe51bb17faa2",
+    measurementId: "G-QJM49GMPT4"
+  };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 

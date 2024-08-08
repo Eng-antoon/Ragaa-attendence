@@ -28,8 +28,11 @@ function generateCalendarView(data) {
     const firstDay = new Date(currentYear, currentMonth, 1).getDay();
     const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
 
+    // Add empty divs for days before the first day of the month
     for (let i = 0; i < firstDay; i++) {
-        calendarDiv.appendChild(document.createElement('div')).classList.add('empty');
+        const emptyDiv = document.createElement('div');
+        emptyDiv.classList.add('empty');
+        calendarDiv.appendChild(emptyDiv);
     }
 
     for (let day = 1; day <= daysInMonth; day++) {
@@ -51,7 +54,7 @@ function generateCalendarView(data) {
                 });
             });
 
-            dayDiv.innerHTML += `<br><br>Attended: ${attendedCount}<br><div class="names">${dayData.map(entry => `<span class="${entry.description === 'Auto-generated' ? 'auto-generated' : ''}">${entry.name}</span>`).join('<br>')}</div>`;
+            dayDiv.innerHTML += `Attended: ${attendedCount}<br><div class="names">${dayData.map(entry => `<span class="${entry.description === 'Auto-generated' ? 'auto-generated' : ''}">${entry.name}</span>`).join('<br>')}</div>`;
             dayDiv.classList.add('attended');
         } else {
             dayDiv.innerHTML += `Attended: 0<br><div class="names">${dayData.map(entry => `<span class="${entry.description === 'Auto-generated' ? 'auto-generated' : ''}">${entry.name}</span>`).join('<br>')}</div>`;

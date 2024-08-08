@@ -1,6 +1,6 @@
 // formHandlers.js
 import db from './firebaseConfig.js';
-import { attendanceData, allPersons, loadData } from './dataLoader.js';
+import { attendanceData, loadData } from './dataLoader.js';
 import { populateAttendanceTable } from './tableView.js';
 
 let editRecordId = null;
@@ -46,7 +46,7 @@ function appendRecordToTable(entry) {
     const row = document.createElement('tr');
     row.className = attendanceClass;
     row.innerHTML = `<td>${entry.name}</td>
-        <td>${entry.date.toISOString().split('T')[0]}</td>
+        <td>${entry.date}</td>
         <td>${entry.attendance}</td>
         <td>${entry.description || ''}</td>
         <td><button onclick="openEditRecordForm('${entry.id}')">Edit</button></td>`;
@@ -73,9 +73,6 @@ function addPerson() {
             newRecord.id = docRef.id;
             attendanceData.push(newRecord);
             appendRecordToTable(newRecord);
-            const nameSet = new Set(Array.from(document.getElementById('filterName').options).map(option => option.value));
-            nameSet.add(newPerson.name);
-            populateNameDropdowns(nameSet);
             closeForm('addPersonForm');
         });
     });

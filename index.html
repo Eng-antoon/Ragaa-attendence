@@ -176,6 +176,38 @@
             populateAttendanceTable(data);
             generateCalendarView(data);
             setSwipeEvents(document.getElementById('calendar'));
+
+            document.getElementById('hamburgerMenu').addEventListener('click', toggleHamburgerMenu);
+            document.getElementById('manageTools').querySelectorAll('.control-button').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    switch(e.target.innerText) {
+                        case '+ Add Record':
+                            openForm('addRecordForm');
+                            break;
+                        case '+ Add Person':
+                            openForm('addPersonForm');
+                            break;
+                        case 'Monthly View':
+                            toggleView('calendar');
+                            break;
+                        case 'Table View':
+                            toggleView('table');
+                            break;
+                        case 'Download Monthly Data':
+                            downloadMonthlyData();
+                            break;
+                        case 'Statistics':
+                            window.location.href = 'statistics.html';
+                            break;
+                        case 'View/Edit Person':
+                            openForm('viewPersonForm');
+                            break;
+                    }
+                });
+            });
+
+            // Attach other necessary event listeners
+            document.getElementById('nameSearch').addEventListener('input', applyFilters);
         });
     </script>
 </body>
