@@ -127,6 +127,7 @@ h1 {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 10px;
+    overflow-x: scroll;
 }
 
 .calendar-header-row {
@@ -143,6 +144,9 @@ h1 {
     padding: 5px;
     border-radius: 5px;
     border: 1px solid #ddd;
+    position: sticky;
+    top: 0;
+    z-index: 1;
 }
 
 .calendar div {
@@ -319,7 +323,27 @@ th {
 
 @media (max-width: 768px) {
     .calendar {
-        grid-template-columns: repeat(1, 1fr);
+        display: flex;
+        overflow-x: scroll;
+        width: 100%;
+    }
+
+    .calendar > div {
+        min-width: 100px;
+    }
+
+    .calendar-header-row {
+        display: flex;
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .calendar-day-header {
+        min-width: 100px;
+    }
+
+    .calendar-nav-button {
+        display: none; /* Hide month navigation buttons on mobile */
     }
 
     .controls {

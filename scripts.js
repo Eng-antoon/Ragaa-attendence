@@ -6,14 +6,16 @@ let editRecordId = null;
 let allPersons = [];
 
 document.addEventListener('DOMContentLoaded', function() {
+    initializeChoices(); // Ensure this is called before loadPersons and loadData
     loadPersons();
     loadData();
-    setSwipeEvents();
-    initializeChoices();
+    setSwipeEvents(document.getElementById('calendar'));
 });
 
 function initializeChoices() {
     const filterNameSelect = document.getElementById('filterName');
+    if (!filterNameSelect) return; // Add this check
+
     window.filterNameChoices = new Choices(filterNameSelect, {
         removeItemButton: true,
         searchResultLimit: 5,
@@ -38,19 +40,26 @@ async function loadPersons() {
 
         // Populate viewPersonSelect dropdown directly
         const viewPersonSelect = document.getElementById('viewPersonSelect');
-        viewPersonSelect.innerHTML = options.map(option => `<option value="${option.value}">${option.label}</option>`).join('');
+        if (viewPersonSelect) {
+            viewPersonSelect.innerHTML = options.map(option => `<option value="${option.value}">${option.label}</option>`).join('');
+        }
 
-        // Update filterNameChoices
-        const filterNameChoices = window.filterNameChoices;
-        filterNameChoices.clearStore();
-        filterNameChoices.setChoices(options, 'value', 'label', true);
+        // Update filterNameChoices if it exists
+        if (window.filterNameChoices) {
+            window.filterNameChoices.clearStore();
+            window.filterNameChoices.setChoices(options, 'value', 'label', true);
+        }
 
         // Populate other dropdowns
         const recordNameSelect = document.getElementById('recordName');
-        recordNameSelect.innerHTML = options.map(option => `<option value="${option.value}">${option.label}</option>`).join('');
+        if (recordNameSelect) {
+            recordNameSelect.innerHTML = options.map(option => `<option value="${option.value}">${option.label}</option>`).join('');
+        }
 
         const editRecordNameSelect = document.getElementById('editRecordName');
-        editRecordNameSelect.innerHTML = options.map(option => `<option value="${option.value}">${option.label}</option>`).join('');
+        if (editRecordNameSelect) {
+            editRecordNameSelect.innerHTML = options.map(option => `<option value="${option.value}">${option.label}</option>`).join('');
+        }
 
     } catch (error) {
         console.error("Error loading persons: ", error);
@@ -114,15 +123,21 @@ function populateNameDropdowns(nameSet) {
     const options = Array.from(nameSet).map(name => ({ value: name, label: name }));
     console.log("Name Options: ", options);
 
-    const filterNameChoices = window.filterNameChoices;
-    filterNameChoices.clearStore();
-    filterNameChoices.setChoices(options, 'value', 'label', true);
+    // Update filterNameChoices if it exists
+    if (window.filterNameChoices) {
+        window.filterNameChoices.clearStore();
+        window.filterNameChoices.setChoices(options, 'value', 'label', true);
+    }
 
     const recordNameSelect = document.getElementById('recordName');
-    recordNameSelect.innerHTML = options.map(option => `<option value="${option.value}">${option.label}</option>`).join('');
+    if (recordNameSelect) {
+        recordNameSelect.innerHTML = options.map(option => `<option value="${option.value}">${option.label}</option>`).join('');
+    }
 
     const editRecordNameSelect = document.getElementById('editRecordName');
-    editRecordNameSelect.innerHTML = options.map(option => `<option value="${option.value}">${option.label}</option>`).join('');
+    if (editRecordNameSelect) {
+        editRecordNameSelect.innerHTML = options.map(option => `<option value="${option.value}">${option.label}</option>`).join('');
+    }
 }
 
 function filterByName() {
@@ -193,10 +208,14 @@ function changeMonth(delta) {
 
 function generateCalendarView(data) {
     const calendarDiv = document.getElementById('calendar');
+    if (!calendarDiv) return;
+
     calendarDiv.innerHTML = '';
 
     const monthYearLabel = document.getElementById('currentMonthYear');
-    monthYearLabel.textContent = new Date(currentYear, currentMonth).toLocaleString('default', { month: 'long', year: 'numeric' });
+    if (monthYearLabel) {
+        monthYearLabel.textContent = new Date(currentYear, currentMonth).toLocaleString('default', { month: 'long', year: 'numeric' });
+    }
 
     const firstDay = new Date(currentYear, currentMonth, 1).getDay();
     const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
@@ -250,8 +269,42 @@ function generateCalendarView(data) {
 
         calendarDiv.appendChild(dayDiv);
     }
+
+    // Add swipe event listeners for mobile view
+    setSwipeEvents(calendarDiv);
 }
 
+function setSwipeEvents(element) {
+    if (!element) return; // Add this check
+
+    let touchstartX = 0;
+    let touchendX = 0;
+
+    element.addEventListener('touchstart', function(event) {
+        touchstartX = event.changedTouches[0].screenX;
+    });
+
+    element.addEventListener('touchend', function(event) {
+        touchendX = event.changedTouches[0].screenX;
+        handleSwipeGesture();
+    });
+
+    function handleSwipeGesture() {
+        if (touchendX < touchstartX && element.scrollWidth === element.scrollLeft + element.clientWidth) {
+            changeMonth(1);
+        }
+        if (touchendX > touchstartX && element.scrollLeft === 0) {
+            changeMonth(-1);
+        }
+    }
+}
+
+// Disable vertical swipe
+document.addEventListener('touchmove', function(event) {
+    if (event.target.closest('#calendar')) {
+        event.preventDefault();
+    }
+}, { passive: false });
 
 function downloadExcel(date) {
     const dayData = attendanceData.filter(entry => entry.date === date);
@@ -554,26 +607,6 @@ function toggleFilterDropdown() {
     const filterDropdown = document.getElementById('filterDropdownContent');
     filterDropdown.classList.toggle('hidden');
     filterDropdown.classList.toggle('show');
-}
-
-function setSwipeEvents() {
-    const calendarView = document.getElementById('calendarView');
-    let touchstartX = 0;
-    let touchendX = 0;
-
-    calendarView.addEventListener('touchstart', function(event) {
-        touchstartX = event.changedTouches[0].screenX;
-    });
-
-    calendarView.addEventListener('touchend', function(event) {
-        touchendX = event.changedTouches[0].screenX;
-        handleSwipeGesture();
-    });
-
-    function handleSwipeGesture() {
-        if (touchendX < touchstartX) changeMonth(1);
-        if (touchendX > touchstartX) changeMonth(-1);
-    }
 }
 
 function loadPersonData() {
