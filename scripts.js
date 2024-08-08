@@ -6,6 +6,19 @@ let editRecordId = null;
 
 document.addEventListener('DOMContentLoaded', function() {
     loadData();
+    setSwipeEvents();
+
+    // Initialize Choices.js for the multi-select dropdown
+    const filterNameSelect = document.getElementById('filterName');
+    const filterNameChoices = new Choices(filterNameSelect, {
+        removeItemButton: true,
+        searchResultLimit: 5,
+        position: 'bottom',
+        shouldSort: false,
+        itemSelectText: ''
+    });
+
+    window.filterNameChoices = filterNameChoices; // Expose filterNameChoices for debugging
 });
 
 function loadData() {
@@ -19,9 +32,12 @@ function loadData() {
             attendanceData.push(data);
             nameSet.add(data.name);
         });
+        console.log("Loaded Data: ", attendanceData); // Debug log
         populateAttendanceTable(attendanceData);
         populateNameDropdown(nameSet);
         generateCalendarView(attendanceData);
+    }).catch((error) => {
+        console.error("Error loading data: ", error); // Error handling
     });
 }
 
@@ -43,18 +59,14 @@ function populateAttendanceTable(data) {
 }
 
 function populateNameDropdown(nameSet) {
-    let options = '<option value="">All</option>';
+    let options = [];
     nameSet.forEach((name) => {
-        options += `<option value="${name}">${name}</option>`;
+        options.push({ value: name, label: name });
     });
-    document.getElementById('filterName').innerHTML = options;
-
-    let recordOptions = '';
-    nameSet.forEach((name) => {
-        recordOptions += `<option value="${name}">${name}</option>`;
-    });
-    document.getElementById('recordName').innerHTML = recordOptions;
-    document.getElementById('editRecordName').innerHTML = recordOptions;
+    console.log("Name Options: ", options); // Debug log
+    const filterNameChoices = window.filterNameChoices;
+    filterNameChoices.clearStore(); // Clear any previous choices
+    filterNameChoices.setChoices(options, 'value', 'label', true); // Set new choices
 }
 
 function filterByName() {
@@ -65,8 +77,10 @@ function filterByName() {
 }
 
 function filterByDropdownName() {
-    const selectedName = document.getElementById('filterName').value;
-    const filteredData = selectedName ? attendanceData.filter(entry => entry.name === selectedName) : attendanceData;
+    const selectedNames = Array.from(document.getElementById('filterName').selectedOptions).map(option => option.value);
+    console.log("Selected Names: ", selectedNames); // Debug log
+    const filteredData = selectedNames.length ? attendanceData.filter(entry => selectedNames.includes(entry.name)) : attendanceData;
+    console.log("Filtered Data: ", filteredData); // Debug log
     populateAttendanceTable(filteredData);
     generateCalendarView(filteredData);
 }
@@ -128,12 +142,28 @@ function generateCalendarView(data) {
         if (attendanceCount > 0) {
             dayDiv.innerHTML += `Attended: ${attendanceCount}<br><div class="names">${dayData.map(entry => entry.name).join('<br>')}</div>`;
             dayDiv.classList.add('attended');
+            dayDiv.innerHTML += `<button class="download-button" onclick="downloadExcel('${dateStr}')">Download</button>`;
         } else {
             dayDiv.innerHTML += `Attended: 0`;
             dayDiv.classList.add('not-attended');
         }
         calendarDiv.appendChild(dayDiv);
     }
+}
+
+function downloadExcel(date) {
+    const dayData = attendanceData.filter(entry => entry.date === date);
+    const worksheetData = [['الاسم', 'التاريخ', 'الحالة', 'الوصف']];
+
+    dayData.forEach(entry => {
+        worksheetData.push([entry.name, entry.date, entry.attendance, entry.description || '']);
+    });
+
+    const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Attendance');
+
+    XLSX.writeFile(workbook, `Attendance_${date}.xlsx`);
 }
 
 function openForm(formId) {
@@ -263,4 +293,43 @@ function toggleEditDescription() {
     const attendance = document.getElementById('editRecordAttendance').value;
     const descriptionInput = document.getElementById('editRecordDescription');
     descriptionInput.disabled = attendance === 'Attended';
+}
+
+function toggleHamburgerMenu() {
+    const hamburgerMenu = document.getElementById('hamburgerMenu');
+    const manageTools = document.getElementById('manageTools');
+    hamburgerMenu.classList.toggle('open');
+    manageTools.style.display = manageTools.style.display === 'flex' ? 'none' : 'flex';
+}
+
+function toggleFilterDropdown() {
+    const filterDropdown = document.getElementById('filterDropdownContent');
+    filterDropdown.classList.toggle('hidden');
+    filterDropdown.classList.toggle('show');
+}
+
+function applyFilters() {
+    filterByDropdownName();
+    filterByDate();
+    toggleFilterDropdown();
+}
+
+function setSwipeEvents() {
+    const calendarView = document.getElementById('calendarView');
+    let touchstartX = 0;
+    let touchendX = 0;
+
+    calendarView.addEventListener('touchstart', function(event) {
+        touchstartX = event.changedTouches[0].screenX;
+    });
+
+    calendarView.addEventListener('touchend', function(event) {
+        touchendX = event.changedTouches[0].screenX;
+        handleSwipeGesture();
+    });
+
+    function handleSwipeGesture() {
+        if (touchendX < touchstartX) changeMonth(1);
+        if (touchendX > touchstartX) changeMonth(-1);
+    }
 }

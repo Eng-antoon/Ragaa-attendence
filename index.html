@@ -5,6 +5,9 @@
     <link rel="stylesheet" href="styles.css">
     <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-firestore.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.1/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css">
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyAdRdy9EIlf9cqumCJDKmT-LBo-0buyxfE",
@@ -22,22 +25,31 @@
     <div class="container">
         <h1>Attendance Tracker</h1>
         <div class="controls">
-            <div class="manage-tools">
+            <div class="hamburger-menu" id="hamburgerMenu" onclick="toggleHamburgerMenu()">&#9776;</div>
+            <div class="manage-tools" id="manageTools">
                 <button class="control-button" onclick="openForm('addRecordForm')">+ Add Record</button>
                 <button class="control-button" onclick="openForm('addPersonForm')">+ Add Person</button>
                 <button class="control-button" onclick="toggleView('calendar')">Monthly View</button>
                 <button class="control-button" onclick="toggleView('table')">Table View</button>
             </div>
-            <div class="filters">
-                <label for="nameSearch">Search by Name: </label>
-                <input type="text" id="nameSearch" oninput="filterByName()">
-                <label for="filterName">Filter by Name: </label>
-                <select id="filterName" onchange="filterByDropdownName()"></select>
-                <label for="filterDate">Filter by Date: </label>
-                <input type="date" id="filterDate" onchange="filterByDate()">
+        </div>
+        <div class="filters-container">
+            <div class="search-bar">
+                <input type="text" id="nameSearch" placeholder="Search by Name" oninput="filterByName()">
+                <button onclick="filterByName()" class="search-button">&#128269;</button>
+            </div>
+            <div class="filter-dropdown">
+                <button onclick="toggleFilterDropdown()" class="filter-button">Filter by</button>
+                <div id="filterDropdownContent" class="filter-dropdown-content hidden">
+                    <label for="filterName">Filter by Name: </label>
+                    <select id="filterName" multiple></select>
+                    <label for="filterDate">Filter by Date: </label>
+                    <input type="date" id="filterDate">
+                    <button onclick="applyFilters()">Apply</button>
+                </div>
             </div>
         </div>
-        <div id="calendarView" class="hidden">
+        <div id="calendarView">
             <div class="calendar-header">
                 <button class="calendar-nav-button" onclick="changeMonth(-1)">&#10094;</button>
                 <span id="currentMonthYear" class="calendar-month"></span>
@@ -45,19 +57,21 @@
             </div>
             <div class="calendar" id="calendar"></div>
         </div>
-        <div id="tableView">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Date</th>
-                        <th>Attendance</th>
-                        <th>Description</th>
-                        <th>Edit</th>
-                    </tr>
-                </thead>
-                <tbody id="attendanceTable"></tbody>
-            </table>
+        <div id="tableView" class="hidden">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Date</th>
+                            <th>Attendance</th>
+                            <th>Description</th>
+                            <th>Edit</th>
+                        </tr>
+                    </thead>
+                    <tbody id="attendanceTable"></tbody>
+                </table>
+            </div>
         </div>
         <div id="addRecordForm" class="modal hidden" onclick="closeModal(event)">
             <div class="modal-content" onclick="event.stopPropagation()">

@@ -18,13 +18,35 @@ h1 {
 }
 .controls {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
+    position: relative;
 }
 .manage-tools {
     display: flex;
+    flex-wrap: wrap;
     gap: 10px;
+    justify-content: flex-end;
+}
+.hamburger-menu {
+    display: none;
+    font-size: 30px;
+    cursor: pointer;
+    margin-right: 10px;
+}
+.hamburger-menu.open + .manage-tools {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 40px;
+    left: 10px;
+    background: white;
+    border: 1px solid #ccc;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    padding: 10px;
+    z-index: 10;
 }
 .control-button {
     background-color: #007bff;
@@ -38,13 +60,80 @@ h1 {
 .control-button:hover {
     background-color: #0056b3;
 }
-.filters {
+.filters-container {
     display: flex;
-    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    margin-bottom: 20px;
 }
-.filters label, .filters input, .filters select {
-    margin: 0;
-    padding: 5px;
+.search-bar {
+    display: flex;
+    flex: 1;
+    max-width: 500px;
+}
+.search-bar input {
+    flex: 1;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 5px 0 0 5px;
+}
+.search-bar .search-button {
+    padding: 10px;
+    font-size: 16px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 0 5px 5px 0;
+    cursor: pointer;
+}
+.filter-dropdown {
+    position: relative;
+}
+.filter-button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 16px;
+    border-radius: 5px;
+}
+.filter-dropdown-content {
+    position: absolute;
+    top: 40px;
+    right: 0;
+    background-color: white;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    z-index: 10;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    width: 300px; /* Increased width */
+    display: none;
+}
+.filter-dropdown-content.hidden {
+    display: none;
+}
+.filter-dropdown-content.show {
+    display: block;
+}
+.filter-dropdown-content label, .filter-dropdown-content input, .filter-dropdown-content select {
+    display: block;
+    width: 100%;
+    margin-bottom: 10px;
+}
+.filter-dropdown-content button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 16px;
+    border-radius: 5px;
+}
+.filter-dropdown-content button:hover {
+    background-color: #0056b3;
 }
 .hidden {
     display: none;
@@ -83,11 +172,12 @@ h1 {
     padding: 10px;
     text-align: center;
     position: relative;
-    min-height: 120px;
+    min-height: 200px;
     background-color: #fff;
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
     border-radius: 5px;
     overflow: hidden;
+    padding-bottom: 40px;
 }
 .calendar .day-number {
     position: absolute;
@@ -113,6 +203,24 @@ h1 {
     color: #333;
     max-height: 60px;
     overflow-y: auto;
+}
+.calendar .download-button {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 12px;
+    border-radius: 5px;
+}
+.calendar .download-button:hover {
+    background-color: #0056b3;
+}
+.table-container {
+    overflow-x: auto;
 }
 table {
     width: 100%;
@@ -157,7 +265,8 @@ th {
     background-color: white;
     padding: 20px;
     border-radius: 5px;
-    width: 50%;
+    width: 90%;
+    max-width: 400px;
     position: relative;
 }
 .close {
@@ -169,4 +278,55 @@ th {
 .modal.show {
     visibility: visible;
     opacity: 1;
+}
+
+/* Media Queries for Mobile View */
+@media (max-width: 600px) {
+    .hamburger-menu {
+        display: block;
+    }
+
+    .manage-tools {
+        display: none;
+    }
+
+    .hamburger-menu.open + .manage-tools {
+        display: flex;
+        flex-direction: column;
+        position: absolute;
+        top: 40px;
+        left: 10px;
+        background: white;
+        border: 1px solid #ccc;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        padding: 10px;
+        z-index: 10;
+    }
+
+    .control-button {
+        width: 100%;
+        text-align: center;
+        margin-bottom: 10px;
+    }
+
+    .filters-container {
+        flex-direction: column;
+    }
+
+    .search-bar {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    .filter-dropdown {
+        width: 100%;
+    }
+
+    .calendar {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .calendar div {
+        min-height: 200px;
+    }
 }
