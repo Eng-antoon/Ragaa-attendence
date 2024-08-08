@@ -42,9 +42,9 @@
                 <button onclick="toggleFilterDropdown()" class="filter-button">Filter by</button>
                 <div id="filterDropdownContent" class="filter-dropdown-content hidden">
                     <label for="filterName">Filter by Name: </label>
-                    <select id="filterName" multiple></select>
+                    <select id="filterName" multiple onchange="filterByDropdownName()"></select>
                     <label for="filterDate">Filter by Date: </label>
-                    <input type="date" id="filterDate">
+                    <input type="date" id="filterDate" onchange="filterByDate()">
                     <button onclick="applyFilters()">Apply</button>
                 </div>
             </div>
@@ -89,7 +89,7 @@
                 </select>
                 <label for="recordDescription" id="descriptionLabel" class="hidden">Description: </label>
                 <input type="text" id="recordDescription" class="hidden">
-                <button onclick="addRecord()">Submit</button>
+                <button class="submit-button" onclick="addRecord()">Submit</button>
             </div>
         </div>
         <div id="addPersonForm" class="modal hidden" onclick="closeModal(event)">
@@ -100,7 +100,7 @@
                 <input type="text" id="personName">
                 <label for="personFirstAttendance">First Attendance Date: </label>
                 <input type="date" id="personFirstAttendance">
-                <button onclick="addPerson()">Submit</button>
+                <button class="submit-button" onclick="addPerson()">Submit</button>
             </div>
         </div>
         <div id="editRecordForm" class="modal hidden" onclick="closeModal(event)">
@@ -119,7 +119,7 @@
                 </select>
                 <label for="editRecordDescription">Description: </label>
                 <input type="text" id="editRecordDescription">
-                <button onclick="updateRecord()">Update</button>
+                <button class="submit-button" onclick="updateRecord()">Update</button>
             </div>
         </div>
     </div>
