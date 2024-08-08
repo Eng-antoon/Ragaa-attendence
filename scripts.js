@@ -166,6 +166,33 @@ function downloadExcel(date) {
     XLSX.writeFile(workbook, `Attendance_${date}.xlsx`);
 }
 
+function downloadMonthlyData() {
+    const monthData = attendanceData.filter(entry => new Date(entry.date).getMonth() === currentMonth && new Date(entry.date).getFullYear() === currentYear);
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+    const worksheetData = [['Name']];
+    for (let day = 1; day <= daysInMonth; day++) {
+        worksheetData[0].push(new Date(currentYear, currentMonth, day).toISOString().split('T')[0]);
+    }
+
+    const nameSet = new Set(monthData.map(entry => entry.name));
+    nameSet.forEach(name => {
+        const row = [name];
+        for (let day = 1; day <= daysInMonth; day++) {
+            const dateStr = new Date(currentYear, currentMonth, day).toISOString().split('T')[0];
+            const entry = monthData.find(e => e.name === name && e.date === dateStr);
+            row.push(entry ? entry.attendance : '');
+        }
+        worksheetData.push(row);
+    });
+
+    const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Monthly Attendance');
+
+    XLSX.writeFile(workbook, `Attendance_${new Date(currentYear, currentMonth).toLocaleString('default', { month: 'long', year: 'numeric' })}.xlsx`);
+}
+
 function openForm(formId) {
     document.getElementById(formId).classList.add('show');
 }
@@ -304,8 +331,8 @@ function toggleHamburgerMenu() {
 
 function toggleFilterDropdown() {
     const filterDropdown = document.getElementById('filterDropdownContent');
-    filterDropdown.classList.toggle('hidden');
     filterDropdown.classList.toggle('show');
+    filterDropdown.classList.toggle('hidden');
 }
 
 function applyFilters() {

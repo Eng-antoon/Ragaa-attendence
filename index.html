@@ -31,6 +31,7 @@
                 <button class="control-button" onclick="openForm('addPersonForm')">+ Add Person</button>
                 <button class="control-button" onclick="toggleView('calendar')">Monthly View</button>
                 <button class="control-button" onclick="toggleView('table')">Table View</button>
+                <button class="control-button" onclick="downloadMonthlyData()">Download Monthly Data</button>
             </div>
         </div>
         <div class="filters-container">
@@ -40,12 +41,16 @@
             </div>
             <div class="filter-dropdown">
                 <button onclick="toggleFilterDropdown()" class="filter-button">Filter by</button>
-                <div id="filterDropdownContent" class="filter-dropdown-content hidden">
-                    <label for="filterName">Filter by Name: </label>
-                    <select id="filterName" multiple onchange="filterByDropdownName()"></select>
-                    <label for="filterDate">Filter by Date: </label>
-                    <input type="date" id="filterDate" onchange="filterByDate()">
-                    <button onclick="applyFilters()">Apply</button>
+                <div id="filterDropdownContent" class="modal hidden" onclick="closeModal(event)">
+                    <div class="modal-content" onclick="event.stopPropagation()">
+                        <span class="close" onclick="closeForm('filterDropdownContent')">&times;</span>
+                        <h3>Filters</h3>
+                        <label for="filterName">Filter by Name: </label>
+                        <select id="filterName" multiple onchange="filterByDropdownName()"></select>
+                        <label for="filterDate">Filter by Date: </label>
+                        <input type="date" id="filterDate" onchange="filterByDate()">
+                        <button class="submit-button" onclick="applyFilters()">Apply</button>
+                    </div>
                 </div>
             </div>
         </div>

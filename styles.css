@@ -4,7 +4,7 @@ body {
     margin: 0;
     padding: 0;
     color: #333;
-    font-size: 16px;
+    font-size: 14px;
 }
 .container {
     width: 95%;
@@ -17,7 +17,7 @@ body {
 h1 {
     text-align: center;
     color: #007bff;
-    font-size: 32px;
+    font-size: 28px;
 }
 .controls {
     display: flex;
@@ -55,9 +55,9 @@ h1 {
     background-color: #007bff;
     color: white;
     border: none;
-    padding: 12px 25px;
+    padding: 10px 20px;
     cursor: pointer;
-    font-size: 18px;
+    font-size: 16px;
     border-radius: 5px;
 }
 .control-button:hover {
@@ -76,14 +76,14 @@ h1 {
 }
 .search-bar input {
     flex: 1;
-    padding: 12px;
-    font-size: 18px;
+    padding: 10px;
+    font-size: 16px;
     border: 1px solid #ccc;
     border-radius: 5px 0 0 5px;
 }
 .search-bar .search-button {
-    padding: 12px;
-    font-size: 18px;
+    padding: 10px;
+    font-size: 16px;
     background-color: #007bff;
     color: white;
     border: none;
@@ -97,9 +97,9 @@ h1 {
     background-color: #007bff;
     color: white;
     border: none;
-    padding: 12px 25px;
+    padding: 10px 20px;
     cursor: pointer;
-    font-size: 18px;
+    font-size: 16px;
     border-radius: 5px;
 }
 .filter-dropdown-content {
@@ -113,30 +113,52 @@ h1 {
     border: 1px solid #ccc;
     border-radius: 5px;
     width: 400px; /* Increased width */
-    display: none;
 }
-.filter-dropdown-content.hidden {
-    display: none;
-}
-.filter-dropdown-content.show {
-    display: block;
-}
-.filter-dropdown-content label, .filter-dropdown-content input, .filter-dropdown-content select {
-    display: block;
+.modal {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
     width: 100%;
-    margin-bottom: 10px;
-    font-size: 16px;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    visibility: hidden;
+    opacity: 0;
+    transition: visibility 0s, opacity 0.5s;
 }
-.filter-dropdown-content button {
+.modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 400px;
+    position: relative;
+}
+.close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    cursor: pointer;
+    font-size: 24px;
+}
+.modal.show {
+    visibility: visible;
+    opacity: 1;
+}
+.submit-button {
     background-color: #007bff;
     color: white;
     border: none;
-    padding: 12px 25px;
+    padding: 15px 30px;
     cursor: pointer;
     font-size: 18px;
     border-radius: 5px;
+    width: 100%;
+    text-align: center;
 }
-.filter-dropdown-content button:hover {
+.submit-button:hover {
     background-color: #0056b3;
 }
 .hidden {
@@ -152,7 +174,7 @@ h1 {
     background-color: #007bff;
     color: white;
     border: none;
-    padding: 12px 25px;
+    padding: 10px 20px;
     cursor: pointer;
     font-size: 20px;
     border-radius: 5px;
@@ -237,7 +259,7 @@ table, th, td {
 th, td {
     padding: 12px;
     text-align: center;
-    font-size: 16px;
+    font-size: 14px;
 }
 th {
     background-color: #343a40;
@@ -251,53 +273,6 @@ th {
 }
 .excused {
     background-color: #fff3cd;
-}
-.modal {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    visibility: hidden;
-    opacity: 0;
-    transition: visibility 0s, opacity 0.5s;
-}
-.modal-content {
-    background-color: white;
-    padding: 20px;
-    border-radius: 10px;
-    width: 90%;
-    max-width: 400px;
-    position: relative;
-}
-.close {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    cursor: pointer;
-    font-size: 24px;
-}
-.modal.show {
-    visibility: visible;
-    opacity: 1;
-}
-.submit-button {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    padding: 15px 30px;
-    cursor: pointer;
-    font-size: 18px;
-    border-radius: 5px;
-    width: 100%;
-    text-align: center;
-}
-.submit-button:hover {
-    background-color: #0056b3;
 }
 
 /* Media Queries for Mobile View */
