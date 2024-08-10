@@ -9,7 +9,6 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeChoices(); 
     loadPersons();
     loadData();
-    setSwipeEvents(document.getElementById('calendar'));
     setupEventListeners();
 });
 
@@ -49,6 +48,16 @@ function setupEventListeners() {
     });
 
     document.getElementById('hamburgerMenu').addEventListener('click', toggleHamburgerMenu);
+
+    document.getElementById('nameSearch').addEventListener('input', applyFilters);
+
+    window.addEventListener('click', function(event) {
+        const manageTools = document.getElementById('manageTools');
+        const hamburgerMenu = document.getElementById('hamburgerMenu');
+        if (manageTools.style.display === 'flex' && !manageTools.contains(event.target) && !hamburgerMenu.contains(event.target)) {
+            toggleHamburgerMenu();
+        }
+    });
 }
 
 function initializeChoices() {
@@ -233,7 +242,9 @@ function toggleView(view) {
 
 function addBulkAttendance() {
     const names = Array.from(document.getElementById('bulkRecordNames').selectedOptions).map(option => option.value);
-    const date = new Date(document.getElementById('bulkRecordDate').value);
+    const dateInput = document.getElementById('bulkRecordDate').value;
+    const date = new Date(dateInput); // Ensure date is correctly parsed
+    date.setHours(0, 0, 0, 0); // Set the time to midnight to avoid timezone issues
     const attendance = document.getElementById('bulkRecordAttendance').value;
 
     names.forEach(name => {
@@ -254,6 +265,7 @@ function addBulkAttendance() {
     closeForm('bulkAttendanceForm');
 }
 
+
 function changeMonth(delta) {
     currentMonth += delta;
     if (currentMonth < 0) {
@@ -266,6 +278,7 @@ function changeMonth(delta) {
     generateCalendarView(attendanceData);
     updateMonthButtons();
 }
+
 function updateMonthButtons() {
     const prevMonth = new Date(currentYear, currentMonth - 1);
     const nextMonth = new Date(currentYear, currentMonth + 1);
@@ -282,7 +295,6 @@ document.addEventListener('DOMContentLoaded', function() {
     updateMonthButtons();
 });
 
-
 function generateCalendarView(data) {
     const calendarDiv = document.getElementById('calendar');
     if (!calendarDiv) return;
@@ -294,14 +306,7 @@ function generateCalendarView(data) {
         monthYearLabel.textContent = new Date(currentYear, currentMonth).toLocaleString('default', { month: 'long', year: 'numeric' });
     }
 
-    const firstDay = new Date(currentYear, currentMonth, 1).getDay();
     const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-
-    for (let i = 0; i < firstDay; i++) {
-        const emptyDiv = document.createElement('div');
-        emptyDiv.classList.add('empty');
-        calendarDiv.appendChild(emptyDiv);
-    }
 
     for (let day = 1; day <= daysInMonth; day++) {
         const dateStr = new Date(currentYear, currentMonth, day).toISOString().split('T')[0];
@@ -314,12 +319,18 @@ function generateCalendarView(data) {
         const dayDiv = document.createElement('div');
         const dayName = new Date(currentYear, currentMonth, day).toLocaleString('default', { weekday: 'short' });
 
-        dayDiv.innerHTML = `<span class="day-name">${dayName}</span><br><span class="day-number">${day}</span><br>`;
+        dayDiv.innerHTML = `<span class="day-name"><strong>${dayName}</strong></span><br><span class="day-number">${day}</span><br>`;
 
         if (attendedCount > 0) {
             const namesHtml = dayData.map(entry => `<span>${entry.name}</span>`).join('<br>');
             dayDiv.innerHTML += `Attended: ${attendedCount}<br><div class="names">${namesHtml}</div>`;
             dayDiv.classList.add('attended');
+
+            const downloadButton = document.createElement('button');
+            downloadButton.classList.add('download-button');
+            downloadButton.innerText = 'Download';
+            downloadButton.addEventListener('click', () => downloadExcel(dateStr));
+            dayDiv.appendChild(downloadButton);
         } else {
             dayDiv.innerHTML += `Attended: 0<br><div class="names">${dayData.map(entry => `<span>${entry.name}</span>`).join('<br>')}</div>`;
             dayDiv.classList.add('not-attended');
@@ -327,41 +338,7 @@ function generateCalendarView(data) {
 
         calendarDiv.appendChild(dayDiv);
     }
-
-    setSwipeEvents(calendarDiv);
 }
-
-
-function setSwipeEvents(element) {
-    if (!element) return; 
-
-    let touchstartX = 0;
-    let touchendX = 0;
-
-    element.addEventListener('touchstart', function(event) {
-        touchstartX = event.changedTouches[0].screenX;
-    });
-
-    element.addEventListener('touchend', function(event) {
-        touchendX = event.changedTouches[0].screenX;
-        handleSwipeGesture();
-    });
-
-    function handleSwipeGesture() {
-        if (touchendX < touchstartX && element.scrollWidth === element.scrollLeft + element.clientWidth) {
-            changeMonth(1);
-        }
-        if (touchendX > touchstartX && element.scrollLeft === 0) {
-            changeMonth(-1);
-        }
-    }
-}
-
-document.addEventListener('touchmove', function(event) {
-    if (event.target.closest('#calendar')) {
-        event.preventDefault();
-    }
-}, { passive: false });
 
 function downloadExcel(date) {
     const dayData = attendanceData.filter(entry => entry.date === date);

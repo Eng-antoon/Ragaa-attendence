@@ -31,7 +31,7 @@
             <div class="manage-tools" id="manageTools">
                 <button class="control-button" data-action="addRecordForm">+ Add Record</button>
                 <button class="control-button" data-action="addPersonForm">+ Add Person</button>
-                <button class="control-button" data-action="bulkAttendanceForm">+ Add Bulk Attendance</button> <!-- New Button -->
+                <button class="control-button" data-action="bulkAttendanceForm">+ Add Bulk Attendance</button>
                 <button class="control-button" data-action="calendar">Monthly View</button>
                 <button class="control-button" data-action="table">Table View</button>
                 <button class="control-button" data-action="downloadMonthlyData">Download Monthly Data</button>
@@ -42,7 +42,6 @@
         <div class="filters-container">
             <div class="search-bar">
                 <input type="text" id="nameSearch" placeholder="Search by Name">
-                <button class="search-button" onclick="applyFilters()">&#128269;</button>
             </div>
             <div class="filter-dropdown">
                 <button class="filter-button" onclick="toggleFilterDropdown()">Filter by</button>
@@ -66,15 +65,6 @@
         </div>
         
         <div id="calendarView">
-            <div class="calendar-header-row">
-                <div class="calendar-day-header">Sun</div>
-                <div class="calendar-day-header">Mon</div>
-                <div class="calendar-day-header">Tue</div>
-                <div class="calendar-day-header">Wed</div>
-                <div class="calendar-day-header">Thu</div>
-                <div class="calendar-day-header">Fri</div>
-                <div class="calendar-day-header">Sat</div>
-            </div>
             <div class="calendar" id="calendar"></div>
         </div>
         <div id="tableView" class="hidden">

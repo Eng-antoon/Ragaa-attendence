@@ -132,7 +132,7 @@ h1 {
 }
 
 .calendar div {
-    min-width: 100px;
+    min-width: 200px;
     flex-shrink: 0;
     text-align: center;
     background-color: white;
@@ -175,18 +175,14 @@ h1 {
     color: #888;
 }
 
-.calendar .day-number, .calendar .day-month {
-    font-size: 14px;
+.calendar .day-number {
+    font-size: 16px;
     font-weight: bold;
+    text-transform: uppercase;
 }
 
 .calendar .names {
     font-size: 14px;
-}
-
-.calendar .auto-generated .names {
-    font-size: 12px;
-    color: #888;
 }
 
 .calendar-header {
@@ -334,7 +330,7 @@ th {
     }
 
     .calendar > div {
-        min-width: 100px; /* Adjust width as necessary */
+        min-width: 200px; /* Adjust width as necessary */
         flex-shrink: 0;
     }
 
@@ -480,4 +476,12 @@ th {
     height: 60vh;
     width: 80vw;
     margin-top: 20px;
+}
+
+.download-button {
+   
+    transform: translateX(-50%);
+    width: 90%;
+    margin-top: 10px;
+    text-align: center;
 }
