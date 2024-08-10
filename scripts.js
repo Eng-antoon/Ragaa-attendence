@@ -25,6 +25,9 @@ function setupEventListeners() {
                     case 'addPersonForm':
                         openForm('addPersonForm');
                         break;
+                    case 'bulkAttendanceForm':
+                        openForm('bulkAttendanceForm');
+                        break;
                     case 'calendar':
                         toggleView('calendar');
                         break;
@@ -35,9 +38,7 @@ function setupEventListeners() {
                         downloadMonthlyData();
                         break;
                     case 'statistics':
-                        // Add your statistics logic here
-                        window.location.href = 'statistics.html';  // Navigate to Statistics.html
-
+                        window.location.href = 'statistics.html';
                         break;
                     case 'viewPersonForm':
                         openForm('viewPersonForm');
@@ -46,9 +47,9 @@ function setupEventListeners() {
             }
         });
     });
+
+    document.getElementById('hamburgerMenu').addEventListener('click', toggleHamburgerMenu);
 }
-
-
 
 function initializeChoices() {
     const filterNameSelect = document.getElementById('filterName');
@@ -61,6 +62,17 @@ function initializeChoices() {
         shouldSort: false,
         itemSelectText: ''
     });
+
+    const bulkRecordNamesSelect = document.getElementById('bulkRecordNames');
+    if (bulkRecordNamesSelect) {
+        window.bulkRecordNamesChoices = new Choices(bulkRecordNamesSelect, {
+            removeItemButton: true,
+            searchResultLimit: 5,
+            position: 'bottom',
+            shouldSort: false,
+            itemSelectText: ''
+        });
+    }
 }
 
 async function loadPersons() {
@@ -74,7 +86,6 @@ async function loadPersons() {
             allPersons.push(data.name.trim());
             options.push({ value: data.name.trim(), label: data.name.trim() });
         });
-        console.log("Loaded Persons: ", allPersons);
 
         const viewPersonSelect = document.getElementById('viewPersonSelect');
         if (viewPersonSelect) {
@@ -94,6 +105,11 @@ async function loadPersons() {
         const editRecordNameSelect = document.getElementById('editRecordName');
         if (editRecordNameSelect) {
             editRecordNameSelect.innerHTML = options.map(option => `<option value="${option.value}">${option.label}</option>`).join('');
+        }
+
+        if (window.bulkRecordNamesChoices) {
+            window.bulkRecordNamesChoices.clearStore();
+            window.bulkRecordNamesChoices.setChoices(options, 'value', 'label', true);
         }
 
     } catch (error) {
@@ -215,6 +231,29 @@ function toggleView(view) {
     document.getElementById('tableView').classList.toggle('hidden', view !== 'table');
 }
 
+function addBulkAttendance() {
+    const names = Array.from(document.getElementById('bulkRecordNames').selectedOptions).map(option => option.value);
+    const date = new Date(document.getElementById('bulkRecordDate').value);
+    const attendance = document.getElementById('bulkRecordAttendance').value;
+
+    names.forEach(name => {
+        const newRecord = {
+            name,
+            date,
+            attendance,
+            description: attendance !== 'Attended' ? 'Bulk added' : ''
+        };
+
+        db.collection("attendance").add(newRecord).then(() => {
+            console.log(`Added bulk attendance for ${name}`);
+        }).catch((error) => {
+            console.error(`Error adding attendance for ${name}:`, error);
+        });
+    });
+
+    closeForm('bulkAttendanceForm');
+}
+
 function changeMonth(delta) {
     currentMonth += delta;
     if (currentMonth < 0) {
@@ -225,7 +264,24 @@ function changeMonth(delta) {
         currentYear += 1;
     }
     generateCalendarView(attendanceData);
+    updateMonthButtons();
 }
+function updateMonthButtons() {
+    const prevMonth = new Date(currentYear, currentMonth - 1);
+    const nextMonth = new Date(currentYear, currentMonth + 1);
+
+    const prevMonthName = prevMonth.toLocaleString('default', { month: 'long' });
+    const nextMonthName = nextMonth.toLocaleString('default', { month: 'long' });
+
+    document.getElementById('prevMonthButton').innerHTML = `&#10094; ${prevMonthName}`;
+    document.getElementById('nextMonthButton').innerHTML = `${nextMonthName} &#10095;`;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Initial update for month buttons when the page loads
+    updateMonthButtons();
+});
+
 
 function generateCalendarView(data) {
     const calendarDiv = document.getElementById('calendar');
@@ -249,14 +305,20 @@ function generateCalendarView(data) {
 
     for (let day = 1; day <= daysInMonth; day++) {
         const dateStr = new Date(currentYear, currentMonth, day).toISOString().split('T')[0];
-        const dayData = data.filter(entry => entry.date === dateStr);
+        const dayData = data.filter(entry => {
+            const entryDateStr = new Date(entry.date).toISOString().split('T')[0];
+            return entryDateStr === dateStr;
+        });
         const attendedCount = dayData.filter(entry => entry.attendance === 'Attended').length;
 
         const dayDiv = document.createElement('div');
-        dayDiv.innerHTML = `<span class="day-number">${day}</span> <span class="day-month">${monthYearLabel.textContent.split(' ')[0]}</span><br>`;
+        const dayName = new Date(currentYear, currentMonth, day).toLocaleString('default', { weekday: 'short' });
+
+        dayDiv.innerHTML = `<span class="day-name">${dayName}</span><br><span class="day-number">${day}</span><br>`;
 
         if (attendedCount > 0) {
-            dayDiv.innerHTML += `Attended: ${attendedCount}<br><div class="names">${dayData.map(entry => `<span>${entry.name}</span>`).join('<br>')}</div>`;
+            const namesHtml = dayData.map(entry => `<span>${entry.name}</span>`).join('<br>');
+            dayDiv.innerHTML += `Attended: ${attendedCount}<br><div class="names">${namesHtml}</div>`;
             dayDiv.classList.add('attended');
         } else {
             dayDiv.innerHTML += `Attended: 0<br><div class="names">${dayData.map(entry => `<span>${entry.name}</span>`).join('<br>')}</div>`;

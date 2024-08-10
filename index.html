@@ -31,6 +31,7 @@
             <div class="manage-tools" id="manageTools">
                 <button class="control-button" data-action="addRecordForm">+ Add Record</button>
                 <button class="control-button" data-action="addPersonForm">+ Add Person</button>
+                <button class="control-button" data-action="bulkAttendanceForm">+ Add Bulk Attendance</button> <!-- New Button -->
                 <button class="control-button" data-action="calendar">Monthly View</button>
                 <button class="control-button" data-action="table">Table View</button>
                 <button class="control-button" data-action="downloadMonthlyData">Download Monthly Data</button>
@@ -59,10 +60,11 @@
             </div>
         </div>
         <div class="calendar-header">
-            <button class="calendar-nav-button" onclick="changeMonth(-1)">&#10094;</button>
+            <button class="calendar-nav-button" id="prevMonthButton" onclick="changeMonth(-1)"></button>
             <span id="currentMonthYear" class="calendar-month"></span>
-            <button class="calendar-nav-button" onclick="changeMonth(1)">&#10095;</button>
+            <button class="calendar-nav-button" id="nextMonthButton" onclick="changeMonth(1)"></button>
         </div>
+        
         <div id="calendarView">
             <div class="calendar-header-row">
                 <div class="calendar-day-header">Sun</div>
@@ -175,6 +177,25 @@
                 </div>
             </div>
         </div>
+
+        <div id="bulkAttendanceForm" class="modal hidden" onclick="closeModal(event)">
+            <div class="modal-content" onclick="event.stopPropagation()">
+                <span class="close" onclick="closeForm('bulkAttendanceForm')">&times;</span>
+                <h3>Add Bulk Attendance</h3>
+                <label for="bulkRecordNames">Select Names: </label>
+                <select id="bulkRecordNames" multiple></select>
+                <label for="bulkRecordDate">Date: </label>
+                <input type="date" id="bulkRecordDate">
+                <label for="bulkRecordAttendance">Attendance: </label>
+                <select id="bulkRecordAttendance">
+                    <option value="Attended">Attended</option>
+                    <option value="Absent">Absent</option>
+                    <option value="Excused">Excused</option>
+                </select>
+                <button class="submit-button" onclick="addBulkAttendance()">Submit</button>
+            </div>
+        </div>
+        
     </div>
     
 </body>

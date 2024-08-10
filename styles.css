@@ -126,10 +126,24 @@ h1 {
 }
 
 .calendar {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 10px;
+    display: flex;
     overflow-x: scroll;
+    -webkit-overflow-scrolling: touch;
+}
+
+.calendar div {
+    min-width: 100px;
+    flex-shrink: 0;
+    text-align: center;
+    background-color: white;
+    border-radius: 5px;
+    padding: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid #ccc;
+    position: relative;
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
 }
 
 .calendar-header-row {
@@ -149,26 +163,6 @@ h1 {
     position: sticky;
     top: 0;
     z-index: 1;
-}
-
-.calendar div {
-    background-color: white;
-    border-radius: 5px;
-    padding: 10px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    border: 1px solid #ccc;
-    text-align: center;
-    position: relative;
-    min-height: 150px;
-    overflow: hidden;
-    padding-bottom: 1rem;
-    margin-bottom: 1rem;
-}
-
-.calendar div:hover {
-    transform: scale(1.05);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
 .calendar .attended { background-color: var(--attended-color); }
@@ -206,15 +200,21 @@ h1 {
     background-color: var(--accent-color);
     color: white;
     border: none;
-    padding: 5px 10px;
+    padding: 5px;
     margin: 0 10px;
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s ease, transform 0.3s ease;
+    width: 150px; /* Fixed width */
+    height: 40px; /* Fixed height */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
 }
 
 .calendar-nav-button:hover {
-    background-color: #D62828;
+    background-color: #abb347;
     transform: scale(1.1);
 }
 
@@ -330,11 +330,12 @@ th {
     .calendar {
         display: flex;
         overflow-x: scroll;
-        width: 100%;
+        -webkit-overflow-scrolling: touch;
     }
 
     .calendar > div {
-        min-width: 100px;
+        min-width: 100px; /* Adjust width as necessary */
+        flex-shrink: 0;
     }
 
     .calendar-header-row {
@@ -348,7 +349,7 @@ th {
     }
 
     .calendar-nav-button {
-        display: none; /* Hide month navigation buttons on mobile */
+        display: block; /* Hide month navigation buttons on mobile */
     }
 
     .controls {
@@ -386,6 +387,18 @@ th {
 
     #filterDropdownContent {
         align-items: flex-start;
+    }
+
+    .manage-tools.show {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        position: absolute;
+        top: 40px;
+        left: 0;
+        background-color: white;
+        border: 1px solid #ccc;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     }
 }
 
