@@ -1,8 +1,11 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Attendance Tracker</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="scripts.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-firestore.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.1/xlsx.full.min.js"></script>
@@ -13,24 +16,24 @@
     <div class="container">
         <h1>Attendance Tracker</h1>
         <div class="controls">
-            <div class="hamburger-menu" id="hamburgerMenu" onclick="toggleHamburgerMenu()">&#9776;</div>
+            <div class="hamburger-menu" id="hamburgerMenu">&#9776;</div>
             <div class="manage-tools" id="manageTools">
-                <button class="control-button" onclick="openForm('addRecordForm')">+ Add Record</button>
-                <button class="control-button" onclick="openForm('addPersonForm')">+ Add Person</button>
-                <button class="control-button" onclick="toggleView('calendar')">Monthly View</button>
-                <button class="control-button" onclick="toggleView('table')">Table View</button>
-                <button class="control-button" onclick="downloadMonthlyData()">Download Monthly Data</button>
-                <button class="control-button" onclick="location.href='statistics.html'">Statistics</button>
-                <button class="control-button" onclick="openForm('viewPersonForm')">View/Edit Person</button>
+                <button class="control-button" data-action="addRecordForm">+ Add Record</button>
+                <button class="control-button" data-action="addPersonForm">+ Add Person</button>
+                <button class="control-button" data-action="calendar">Monthly View</button>
+                <button class="control-button" data-action="table">Table View</button>
+                <button class="control-button" data-action="downloadMonthlyData">Download Monthly Data</button>
+                <button class="control-button" data-action="statistics">Statistics</button>
+                <button class="control-button" data-action="viewPersonForm">View/Edit Person</button>
             </div>
         </div>
         <div class="filters-container">
             <div class="search-bar">
-                <input type="text" id="nameSearch" placeholder="Search by Name" oninput="applyFilters()">
-                <button onclick="applyFilters()" class="search-button">&#128269;</button>
+                <input type="text" id="nameSearch" placeholder="Search by Name">
+                <button class="search-button" onclick="applyFilters()">&#128269;</button>
             </div>
             <div class="filter-dropdown">
-                <button onclick="toggleFilterDropdown()" class="filter-button">Filter by</button>
+                <button class="filter-button" onclick="toggleFilterDropdown()">Filter by</button>
                 <div id="filterDropdownContent" class="modal hidden" onclick="closeModal(event)">
                     <div class="modal-content" onclick="event.stopPropagation()">
                         <span class="close" onclick="closeForm('filterDropdownContent')">&times;</span>
@@ -162,53 +165,6 @@
             </div>
         </div>
     </div>
-    <script type="module">
-        import './firebaseConfig.js';
-        import { loadPersons, loadData } from './dataLoader.js';
-        import { changeMonth, generateCalendarView, setSwipeEvents } from './calendarView.js';
-        import { populateAttendanceTable } from './tableView.js';
-        import { openForm, closeForm, openEditRecordForm, addRecord, addPerson, updateRecord, toggleDescription, toggleEditDescription } from './formHandlers.js';
-        import { applyFilters } from './filters.js';
-
-        document.addEventListener('DOMContentLoaded', async function() {
-            await loadPersons();
-            const data = await loadData();
-            populateAttendanceTable(data);
-            generateCalendarView(data);
-            setSwipeEvents(document.getElementById('calendar'));
-
-            document.getElementById('hamburgerMenu').addEventListener('click', toggleHamburgerMenu);
-            document.getElementById('manageTools').querySelectorAll('.control-button').forEach(button => {
-                button.addEventListener('click', (e) => {
-                    switch(e.target.innerText) {
-                        case '+ Add Record':
-                            openForm('addRecordForm');
-                            break;
-                        case '+ Add Person':
-                            openForm('addPersonForm');
-                            break;
-                        case 'Monthly View':
-                            toggleView('calendar');
-                            break;
-                        case 'Table View':
-                            toggleView('table');
-                            break;
-                        case 'Download Monthly Data':
-                            downloadMonthlyData();
-                            break;
-                        case 'Statistics':
-                            window.location.href = 'statistics.html';
-                            break;
-                        case 'View/Edit Person':
-                            openForm('viewPersonForm');
-                            break;
-                    }
-                });
-            });
-
-            // Attach other necessary event listeners
-            document.getElementById('nameSearch').addEventListener('input', applyFilters);
-        });
-    </script>
+    
 </body>
 </html>

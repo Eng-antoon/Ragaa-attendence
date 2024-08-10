@@ -1,6 +1,6 @@
 // formHandlers.js
 import db from './firebaseConfig.js';
-import { attendanceData, loadData } from './dataLoader.js';
+import { attendanceData, loadData, loadPersons } from './dataLoader.js';
 import { populateAttendanceTable } from './tableView.js';
 
 let editRecordId = null;
