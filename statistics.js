@@ -22,25 +22,44 @@ async function loadAttendanceData() {
 }
 
 function generateAttendanceChart(data) {
-    const attendanceCounts = { Attended: 0, Absent: 0, Excused: 0 };
-
-    data.forEach(entry => {
-        if (attendanceCounts[entry.attendance] !== undefined) {
-            attendanceCounts[entry.attendance]++;
+    const attendanceCounts = data.reduce((counts, entry) => {
+        if (!counts[entry.name]) {
+            counts[entry.name] = { Attended: 0, Absent: 0, Excused: 0 };
         }
-    });
+        counts[entry.name][entry.attendance]++;
+        return counts;
+    }, {});
+
+    const labels = Object.keys(attendanceCounts);
+    const attendedData = labels.map(name => attendanceCounts[name].Attended);
+    const absentData = labels.map(name => attendanceCounts[name].Absent);
+    const excusedData = labels.map(name => attendanceCounts[name].Excused);
 
     const ctx = document.getElementById('attendanceChart').getContext('2d');
     new Chart(ctx, {
-        type: 'doughnut',
+        type: 'bar',
         data: {
-            labels: ['Attended', 'Absent', 'Excused'],
-            datasets: [{
-                label: 'Attendance Counts',
-                data: [attendanceCounts.Attended, attendanceCounts.Absent, attendanceCounts.Excused],
-                backgroundColor: ['#d4edda', '#f8d7da', '#fff3cd'],
-                hoverOffset: 4
-            }]
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Attended',
+                    data: attendedData,
+                    backgroundColor: '#d4edda',
+                    borderColor: '#d4edda'
+                },
+                {
+                    label: 'Absent',
+                    data: absentData,
+                    backgroundColor: '#f8d7da',
+                    borderColor: '#f8d7da'
+                },
+                {
+                    label: 'Excused',
+                    data: excusedData,
+                    backgroundColor: '#fff3cd',
+                    borderColor: '#fff3cd'
+                }
+            ]
         },
         options: {
             responsive: true,
@@ -48,14 +67,31 @@ function generateAttendanceChart(data) {
                 tooltip: {
                     callbacks: {
                         label: function(context) {
-                            return `${context.label}: ${context.raw}`;
+                            return `${context.dataset.label}: ${context.raw}`;
                         }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    stacked: true,
+                    title: {
+                        display: true,
+                        text: 'Person'
+                    }
+                },
+                y: {
+                    stacked: true,
+                    title: {
+                        display: true,
+                        text: 'Count'
                     }
                 }
             }
         }
     });
 }
+
 
 function generateMonthlyAttendanceChart(data) {
     const monthlyData = {};
